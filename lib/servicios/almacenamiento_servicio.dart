@@ -1,24 +1,21 @@
 import 'dart:typed_data';
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class AlmacenamientoServicio {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
+  static final ImagePicker _picker = ImagePicker();
 
   /// Permite al usuario seleccionar un archivo GIF/Video/Imagen de su dispositivo
   /// y lo sube directamente a Firebase Storage.
-  /// Retorna la URL pública de descarga.
+  /// Funciona de forma 100% nativa y compatible tanto en Web como en Android/iOS.
   static Future<String?> seleccionarYSubirDemostracion() async {
-    final List<PlatformFile> archivos = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['gif', 'png', 'jpg', 'jpeg', 'mp4', 'mov', 'webp'],
-    );
+    final XFile? archivo = await _picker.pickMedia();
 
-    if (archivos.isEmpty) {
+    if (archivo == null) {
       return null;
     }
 
-    final archivo = archivos.first;
     final Uint8List bytes = await archivo.readAsBytes();
 
     if (bytes.isEmpty) {
@@ -31,8 +28,10 @@ class AlmacenamientoServicio {
 
     final ref = _storage.ref().child(rutaStorage);
 
+    final String? extension = archivo.name.contains('.') ? archivo.name.split('.').last : null;
+
     final metadata = SettableMetadata(
-      contentType: _obtenerContentType(archivo.extension),
+      contentType: _obtenerContentType(extension),
     );
 
     final task = await ref.putData(bytes, metadata);
