@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../servicios/web_helper_stub.dart' if (dart.library.html) '../servicios/web_helper_html.dart';
 
 class DialogoDemostracion extends StatelessWidget {
   final String nombreEjercicio;
@@ -35,12 +37,27 @@ class DialogoDemostracion extends StatelessWidget {
   }
 
   Future<void> _abrirEnlace(BuildContext context, String url) async {
-    final uri = Uri.tryParse(url);
+    String urlFormateada = url.trim();
+    if (urlFormateada.isEmpty) return;
+    if (!urlFormateada.startsWith('http://') && !urlFormateada.startsWith('https://')) {
+      urlFormateada = 'https://$urlFormateada';
+    }
+
+    if (kIsWeb) {
+      abrirUrlWeb(urlFormateada);
+      return;
+    }
+
+    final uri = Uri.tryParse(urlFormateada);
     if (uri != null) {
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
+      bool launched = false;
+      try {
+        launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+      } catch (_) {}
+
       if (!launched && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
