@@ -8,38 +8,41 @@ Future<Map<String, dynamic>?> seleccionarArchivoWeb() async {
   final completer = Completer<Map<String, dynamic>?>();
   final input = html.FileUploadInputElement();
   input.accept = 'image/*,video/*,.gif,.mp4,.mov,.png,.jpg,.jpeg,.webp';
-  input.click();
 
   input.onChange.listen((event) {
     final files = input.files;
     if (files == null || files.isEmpty) {
-      completer.complete(null);
+      if (!completer.isCompleted) completer.complete(null);
       return;
     }
     final file = files.first;
     final reader = html.FileReader();
     reader.readAsArrayBuffer(file);
     reader.onLoadEnd.listen((event) {
-      final result = reader.result;
-      if (result is Uint8List) {
-        completer.complete({
-          'name': file.name,
-          'bytes': result,
-        });
-      } else if (result is ByteBuffer) {
-        completer.complete({
-          'name': file.name,
-          'bytes': Uint8List.view(result),
-        });
-      } else {
-        completer.complete(null);
+      try {
+        final result = reader.result;
+        Uint8List? bytes;
+        if (result is Uint8List) {
+          bytes = result;
+        } else if (result is ByteBuffer) {
+          bytes = Uint8List.view(result);
+        } else if (result != null) {
+          bytes = Uint8List.fromList(List<int>.from(result as dynamic));
+        }
+
+        if (!completer.isCompleted) {
+          completer.complete(bytes != null ? {'name': file.name, 'bytes': bytes} : null);
+        }
+      } catch (e) {
+        if (!completer.isCompleted) completer.complete(null);
       }
     });
     reader.onError.listen((event) {
-      completer.complete(null);
+      if (!completer.isCompleted) completer.complete(null);
     });
   });
 
+  input.click();
   return completer.future;
 }
 

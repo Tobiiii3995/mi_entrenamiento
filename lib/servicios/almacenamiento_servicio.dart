@@ -42,10 +42,17 @@ class AlmacenamientoServicio {
       contentType: _obtenerContentType(extension),
     );
 
-    final task = await ref.putData(bytes, metadata);
-    final urlDescarga = await task.ref.getDownloadURL();
-
-    return urlDescarga;
+    try {
+      final UploadTask task = ref.putData(bytes, metadata);
+      final snapshot = await task.whenComplete(() {}).timeout(
+        const Duration(seconds: 45),
+        onTimeout: () => throw Exception('La subida a Firebase Storage excedió el tiempo límite (45s).'),
+      );
+      final urlDescarga = await snapshot.ref.getDownloadURL();
+      return urlDescarga;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   static String _obtenerContentType(String? extension) {
