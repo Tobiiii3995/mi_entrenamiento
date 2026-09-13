@@ -344,7 +344,9 @@ class _EditarRutinaPaginaState extends State<EditarRutinaPagina> {
                   },
                   decoration: const InputDecoration(
                     labelText: 'Repeticiones',
-                    hintText: 'Ej: 10 o 10 por pierna',
+                    hintText: 'Ej: 12-10-8 o 10 por serie',
+                    helperText:
+                        'Podés indicar repeticiones fijas (ej: 12) o por serie (ej: 12-10-8)',
                     border: OutlineInputBorder(),
                   ),
                 ),

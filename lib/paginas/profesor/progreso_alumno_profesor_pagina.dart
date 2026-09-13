@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -35,10 +37,19 @@ class _ProgresoAlumnoProfesorPaginaState
   bool cargando = true;
   String? error;
 
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _suscripcionEntrenamientos;
+
   @override
   void initState() {
     super.initState();
     cargarDatos();
+  }
+
+  @override
+  void dispose() {
+    _suscripcionEntrenamientos?.cancel();
+    super.dispose();
   }
 
   Future<void> cargarDatos() async {
@@ -259,6 +270,29 @@ class _ProgresoAlumnoProfesorPaginaState
                 : null;
 
         cargando = false;
+      });
+
+      _suscripcionEntrenamientos?.cancel();
+      _suscripcionEntrenamientos = _firestore
+          .collection('entrenamientosAlumno')
+          .where('alumnoId', isEqualTo: widget.alumno.id)
+          .snapshots()
+          .listen((snapshot) {
+        final nuevosEntrenamientos = <_EntrenamientoCloud>[];
+        for (final doc in snapshot.docs) {
+          final item = _entrenamientoDesdeFirestore(doc);
+          if (item != null) {
+            nuevosEntrenamientos.add(item);
+          }
+        }
+        nuevosEntrenamientos.sort(
+          (a, b) => b.entrenamiento.fecha.compareTo(a.entrenamiento.fecha),
+        );
+        if (mounted) {
+          setState(() {
+            entrenamientos = nuevosEntrenamientos;
+          });
+        }
       });
     } on FirebaseException catch (e) {
       if (!mounted) {
