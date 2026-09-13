@@ -9,15 +9,16 @@ class AlmacenamientoServicio {
   /// y lo sube directamente a Firebase Storage.
   /// Retorna la URL pública de descarga.
   static Future<String?> seleccionarYSubirDemostracion() async {
-    final PlatformFile? archivo = await FilePicker.pickFile(
+    final List<PlatformFile> archivos = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['gif', 'png', 'jpg', 'jpeg', 'mp4', 'mov', 'webp'],
     );
 
-    if (archivo == null) {
+    if (archivos.isEmpty) {
       return null;
     }
 
+    final archivo = archivos.first;
     final Uint8List bytes = await archivo.readAsBytes();
 
     if (bytes.isEmpty) {
