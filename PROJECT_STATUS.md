@@ -42,9 +42,9 @@
 ---
 
 ## 🟡 Estado de la Última Sesión
-- **Motor de Subida:** Migrado a arquitectura dual libre de costos (Catbox + FreeImage) para evitar errores de cuota o tarjeta en Firebase Storage.
-- **Visualizador:** Implementado con pantalla completa interactiva y zoom.
-- **Repositorio:** 100% sincronizado con la rama `main` en GitHub.
+- **Motor de Subida:** Implementado con procesamiento ultra rápido como Data URI (< 800 KB) inmune a CORS y conexión, más fallback en la nube para archivos pesados.
+- **Visualizador:** Implementado con pantalla completa interactiva, zoom táctil/PC y soporte para Data URIs e imágenes en memoria.
+- **Repositorio y Despliegue:** 100% sincronizado en GitHub (`main`) y desplegado en Firebase Hosting.
 
 ---
 
