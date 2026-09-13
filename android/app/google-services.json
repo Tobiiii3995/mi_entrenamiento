@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "651469209749",
+    "project_id": "mi-entrenamiento-9f4a8",
+    "storage_bucket": "mi-entrenamiento-9f4a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651469209749:android:35e35b383d91555fc45b9c",
+        "android_client_info": {
+          "package_name": "com.example.mi_entrenamiento"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4C0-75dWh9eh6SuwRO4sNSVEmDoXeNi4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
