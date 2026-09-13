@@ -1,15 +1,17 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'web_helper_stub.dart' if (dart.library.html) 'web_helper_html.dart';
 
 class AlmacenamientoServicio {
-  static final FirebaseStorage _storage = FirebaseStorage.instance;
   static final ImagePicker _picker = ImagePicker();
 
+  // Imgur API Client ID (Anon upload endpoint)
+  static const String _imgurClientId = 'c8670868f075d9e';
+
   /// Permite al usuario seleccionar un archivo GIF/Video/Imagen de su dispositivo
-  /// y lo sube directamente a Firebase Storage.
-  /// Funciona de forma 100% nativa y compatible tanto en Web como en Android/iOS.
+  /// y lo sube de forma 100% gratuita y automática a Imgur (sin tarjeta ni costos en Firebase).
   static Future<String?> seleccionarYSubirDemostracion() async {
     Uint8List? bytes;
     String? nombreArchivo;
@@ -30,48 +32,38 @@ class AlmacenamientoServicio {
       throw Exception('No se pudieron leer los datos del archivo seleccionado.');
     }
 
-    final timestamp = DateTime.now().microsecondsSinceEpoch;
-    final nombreLimpio = nombreArchivo.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-    final rutaStorage = 'ejercicios_demostraciones/${timestamp}_$nombreLimpio';
-
-    final ref = _storage.ref().child(rutaStorage);
-
-    final String? extension = nombreArchivo.contains('.') ? nombreArchivo.split('.').last : null;
-
-    final metadata = SettableMetadata(
-      contentType: _obtenerContentType(extension),
-    );
-
-    try {
-      final UploadTask task = ref.putData(bytes, metadata);
-      final snapshot = await task.whenComplete(() {}).timeout(
-        const Duration(seconds: 45),
-        onTimeout: () => throw Exception('La subida a Firebase Storage excedió el tiempo límite (45s).'),
-      );
-      final urlDescarga = await snapshot.ref.getDownloadURL();
-      return urlDescarga;
-    } catch (e) {
-      rethrow;
-    }
+    return await _subirAImgur(bytes, nombreArchivo);
   }
 
-  static String _obtenerContentType(String? extension) {
-    switch (extension?.toLowerCase()) {
-      case 'gif':
-        return 'image/gif';
-      case 'png':
-        return 'image/png';
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'webp':
-        return 'image/webp';
-      case 'mp4':
-        return 'video/mp4';
-      case 'mov':
-        return 'video/quicktime';
-      default:
-        return 'application/octet-stream';
+  static Future<String> _subirAImgur(Uint8List bytes, String nombreArchivo) async {
+    final uri = Uri.parse('https://api.imgur.com/3/upload');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Client-ID $_imgurClientId'
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          bytes,
+          filename: nombreArchivo,
+        ),
+      );
+
+    final response = await request.send().timeout(
+      const Duration(seconds: 45),
+      onTimeout: () => throw Exception('La subida tardó demasiado (Timeout). Verificá tu conexión.'),
+    );
+
+    final responseBody = await response.stream.bytesToString();
+    final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
+
+    if (response.statusCode == 200 && jsonResponse['success'] == true) {
+      final data = jsonResponse['data'] as Map<String, dynamic>;
+      final link = data['link'] as String?;
+      if (link != null && link.isNotEmpty) {
+        return link;
+      }
     }
+
+    final errorMsg = jsonResponse['data']?['error'] ?? 'Error al subir a Imgur (Código: ${response.statusCode})';
+    throw Exception(errorMsg.toString());
   }
 }
