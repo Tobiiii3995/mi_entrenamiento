@@ -318,5 +318,9 @@ class AppDatabase extends _$AppDatabase {
 QueryExecutor _abrirConexion() {
   return driftDatabase(
     name: 'mi_entrenamiento',
+    web: DriftWebOptions(
+      sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+      driftWorker: Uri.parse('drift_worker.js'),
+    ),
   );
 }
