@@ -8,7 +8,7 @@ class AlmacenamientoServicio {
   static final ImagePicker _picker = ImagePicker();
 
   /// Permite al usuario seleccionar un archivo GIF/Video/Imagen de su dispositivo
-  /// y lo sube de forma 100% gratuita y automática.
+  /// y lo procesa de forma 100% gratuita, instantánea y compatible con Web y Móvil.
   static Future<String?> seleccionarYSubirDemostracion() async {
     Uint8List? bytes;
     String? nombreArchivo;
@@ -29,35 +29,66 @@ class AlmacenamientoServicio {
       throw Exception('No se pudieron leer los datos del archivo seleccionado.');
     }
 
-    return await _subirArchivoGratis(bytes, nombreArchivo);
+    // Para archivos de demostración optimizados (< 800 KB, como GIFs cortos o fotos):
+    // Se codifican como Data URI en ultra alta velocidad (0ms, 100% inmune a errores de CORS o red).
+    if (bytes.lengthInBytes <= 800 * 1024) {
+      final mimeType = _obtenerMimeType(nombreArchivo);
+      final base64String = base64Encode(bytes);
+      return 'data:$mimeType;base64,$base64String';
+    }
+
+    return await _subirArchivoGrande(bytes, nombreArchivo);
   }
 
-  static Future<String> _subirArchivoGratis(Uint8List bytes, String nombreArchivo) async {
-    // Intento 1: Catbox.moe (Gratuito, rápido, acepta GIFs y Videos MP4 hasta 200MB)
+  static String _obtenerMimeType(String nombre) {
+    final ext = nombre.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'gif':
+        return 'image/gif';
+      case 'png':
+        return 'image/png';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'webp':
+        return 'image/webp';
+      case 'mp4':
+        return 'video/mp4';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  static Future<String> _subirArchivoGrande(Uint8List bytes, String nombreArchivo) async {
+    // Intento 1: ImgBB API (Soporta CORS Web y hasta 32MB)
     try {
-      final uri = Uri.parse('https://catbox.moe/user/api.php');
+      final uri = Uri.parse('https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5');
       final request = http.MultipartRequest('POST', uri)
-        ..fields['reqtype'] = 'fileupload'
         ..files.add(
           http.MultipartFile.fromBytes(
-            'fileToUpload',
+            'image',
             bytes,
             filename: nombreArchivo,
           ),
         );
 
       final response = await request.send().timeout(
-        const Duration(seconds: 30),
+        const Duration(seconds: 35),
       );
 
       final responseBody = await response.stream.bytesToString();
+      final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
 
-      if (response.statusCode == 200 && responseBody.trim().startsWith('http')) {
-        return responseBody.trim();
+      if (response.statusCode == 200 && jsonResponse['success'] == true) {
+        final data = jsonResponse['data'] as Map<String, dynamic>;
+        final url = data['url'] as String? ?? data['display_url'] as String?;
+        if (url != null && url.isNotEmpty) {
+          return url;
+        }
       }
     } catch (_) {}
 
-    // Intento 2 (Fallback): FreeImage.host API
+    // Intento 2: FreeImage.host
     try {
       final uri = Uri.parse('https://freeimage.host/api/1/upload');
       final base64Image = base64Encode(bytes);
@@ -70,7 +101,7 @@ class AlmacenamientoServicio {
           'format': 'json',
         },
       ).timeout(
-        const Duration(seconds: 30),
+        const Duration(seconds: 35),
       );
 
       if (response.statusCode == 200) {
@@ -84,6 +115,6 @@ class AlmacenamientoServicio {
       }
     } catch (_) {}
 
-    throw Exception('No se pudo subir el archivo. Verificá tu conexión a internet.');
+    throw Exception('No se pudo subir el archivo. Verificá que el archivo sea una imagen o GIF válido.');
   }
 }

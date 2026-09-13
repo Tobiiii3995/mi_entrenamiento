@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,6 +15,7 @@ class DialogoDemostracion extends StatelessWidget {
   });
 
   static String? obtenerYouTubeId(String url) {
+    if (url.startsWith('data:')) return null;
     final regExp = RegExp(
       r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})',
       caseSensitive: false,
@@ -24,7 +26,8 @@ class DialogoDemostracion extends StatelessWidget {
 
   static bool esImagenOGif(String url) {
     final urlMinuscula = url.toLowerCase();
-    return urlMinuscula.contains('.gif') ||
+    return urlMinuscula.startsWith('data:image') ||
+        urlMinuscula.contains('.gif') ||
         urlMinuscula.contains('.png') ||
         urlMinuscula.contains('.jpg') ||
         urlMinuscula.contains('.jpeg') ||
@@ -34,11 +37,88 @@ class DialogoDemostracion extends StatelessWidget {
         urlMinuscula.contains('imgur.com') ||
         urlMinuscula.contains('catbox.moe') ||
         urlMinuscula.contains('freeimage.host') ||
+        urlMinuscula.contains('ibb.co') ||
+        urlMinuscula.contains('i.ibb.co') ||
         urlMinuscula.contains('pinimg.com') ||
         urlMinuscula.contains('firebasestorage.googleapis.com');
   }
 
+  Widget _construirImagen(BuildContext context, String url, {BoxFit fit = BoxFit.contain}) {
+    if (url.startsWith('data:image')) {
+      try {
+        final base64Data = url.split(',').last;
+        final bytes = base64Decode(base64Data);
+        return Image.memory(
+          bytes,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => const Padding(
+            padding: EdgeInsets.all(32),
+            child: Center(
+              child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+            ),
+          ),
+        );
+      } catch (e) {
+        return const Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(
+            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+          ),
+        );
+      }
+    }
+
+    return Image.network(
+      url,
+      fit: fit,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return const Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.amber.shade50,
+            border: Border.all(color: Colors.amber.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.warning_amber_rounded,
+                  size: 40, color: Colors.amber),
+              const SizedBox(height: 8),
+              const Text(
+                'Vista previa no disponible por restricciones del sitio externo.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => _abrirEnlace(context, url),
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: const Text('Abrir imagen en navegador'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.amber.shade800,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _abrirEnlace(BuildContext context, String url) async {
+    if (url.startsWith('data:')) return;
     String urlFormateada = url.trim();
     if (urlFormateada.isEmpty) return;
     if (!urlFormateada.startsWith('http://') && !urlFormateada.startsWith('https://')) {
@@ -91,27 +171,7 @@ class DialogoDemostracion extends StatelessWidget {
             child: InteractiveViewer(
               minScale: 0.5,
               maxScale: 4.0,
-              child: Image.network(
-                url,
-                fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) => const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.broken_image, size: 64, color: Colors.white54),
-                    SizedBox(height: 16),
-                    Text(
-                      'No se pudo cargar la imagen en pantalla completa.',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
+              child: _construirImagen(context, url, fit: BoxFit.contain),
             ),
           ),
         ),
@@ -124,6 +184,7 @@ class DialogoDemostracion extends StatelessWidget {
     final urlLimpia = urlMedia.trim();
     final youtubeId = obtenerYouTubeId(urlLimpia);
     final esImagen = esImagenOGif(urlLimpia);
+    final esDataUrl = urlLimpia.startsWith('data:');
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -163,53 +224,7 @@ class DialogoDemostracion extends StatelessWidget {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                urlLimpia,
-                                fit: BoxFit.contain,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return const Padding(
-                                    padding: EdgeInsets.all(32.0),
-                                    child: Center(child: CircularProgressIndicator()),
-                                  );
-                                },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.shade50,
-                                      border: Border.all(color: Colors.amber.shade300),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.warning_amber_rounded,
-                                            size: 40, color: Colors.amber),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          'Vista previa no disponible por restricciones del sitio externo.',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        FilledButton.icon(
-                                          onPressed: () => _abrirEnlace(context, urlLimpia),
-                                          icon: const Icon(Icons.open_in_new, size: 16),
-                                          label: const Text('Abrir imagen en navegador'),
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor: Colors.amber.shade800,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
+                              child: _construirImagen(context, urlLimpia),
                             ),
                             Positioned(
                               top: 8,
@@ -278,7 +293,7 @@ class DialogoDemostracion extends StatelessWidget {
                               const Icon(Icons.open_in_new, size: 40, color: Colors.blue),
                               const SizedBox(height: 8),
                               Text(
-                                urlLimpia,
+                                esDataUrl ? 'Archivo local adjunto' : urlLimpia,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 14, color: Colors.blue.shade900),
                                 maxLines: 2,
@@ -302,12 +317,14 @@ class DialogoDemostracion extends StatelessWidget {
                       icon: const Icon(Icons.fullscreen, size: 18),
                       label: const Text('Maximizar'),
                     ),
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    onPressed: () => _abrirEnlace(context, urlLimpia),
-                    icon: const Icon(Icons.open_in_browser, size: 18),
-                    label: const Text('Abrir en navegador'),
-                  ),
+                  if (!esDataUrl) ...[
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: () => _abrirEnlace(context, urlLimpia),
+                      icon: const Icon(Icons.open_in_browser, size: 18),
+                      label: const Text('Abrir en navegador'),
+                    ),
+                  ],
                 ],
               ),
             ],
