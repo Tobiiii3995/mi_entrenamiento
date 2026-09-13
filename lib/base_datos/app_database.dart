@@ -86,6 +86,8 @@ class Ejercicios extends Table {
 
   TextColumn get instrucciones => text().nullable()();
 
+  TextColumn get urlMedia => text().nullable()();
+
   DateTimeColumn get creadoEn =>
       dateTime().withDefault(currentDateAndTime)();
 
@@ -292,7 +294,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_abrirConexion());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -308,6 +310,13 @@ class AppDatabase extends _$AppDatabase {
 
           await migrator.createTable(
             registrosEnCurso,
+          );
+        }
+
+        if (desde < 3) {
+          await migrator.addColumn(
+            ejercicios,
+            ejercicios.urlMedia,
           );
         }
       },

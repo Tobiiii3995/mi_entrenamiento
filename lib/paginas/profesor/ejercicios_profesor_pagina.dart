@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../modelos/ejercicio_catalogo.dart';
 import '../../repositorios/ejercicio_repositorio.dart';
 import '../../servicios/base_datos_servicio.dart';
+import '../../widgets/dialogo_demostracion.dart';
 import 'editar_ejercicio_pagina.dart';
 
 class EjerciciosProfesorPagina extends StatefulWidget {
@@ -198,6 +199,26 @@ class _EjerciciosProfesorPaginaState
         return SafeArea(
           child: Wrap(
             children: [
+              if ((ejercicio.urlMedia ?? '').trim().isNotEmpty)
+                ListTile(
+                  leading: const Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.blue,
+                  ),
+                  title: const Text(
+                    'Ver demostración',
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showDialog(
+                      context: context,
+                      builder: (_) => DialogoDemostracion(
+                        nombreEjercicio: ejercicio.nombre,
+                        urlMedia: ejercicio.urlMedia!,
+                      ),
+                    );
+                  },
+                ),
               ListTile(
                 leading: const Icon(
                   Icons.edit_outlined,

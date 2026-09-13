@@ -280,6 +280,12 @@ class AsignacionRutinaRepositorio {
         final descansoDato =
             item['descansoSegundos'];
 
+        final urlMediaRaw =
+            item['urlMedia'] ?? item['url_media'];
+
+        final urlMediaTexto =
+            urlMediaRaw?.toString().trim();
+
         ejercicios.add(
           Ejercicio(
             id:
@@ -303,6 +309,10 @@ class AsignacionRutinaRepositorio {
                 descansoDato is num
                     ? descansoDato.toInt()
                     : 0,
+            urlMedia:
+                (urlMediaTexto != null && urlMediaTexto.isNotEmpty)
+                    ? urlMediaTexto
+                    : null,
           ),
         );
       }
@@ -495,6 +505,8 @@ class AsignacionRutinaRepositorio {
               item.ejercicio.grupoMuscular,
           'instrucciones':
               item.ejercicio.instrucciones,
+          'urlMedia':
+              item.ejercicio.urlMedia,
           'orden':
               entrada.key,
           'series':

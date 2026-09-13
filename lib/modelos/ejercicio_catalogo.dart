@@ -7,6 +7,7 @@ class EjercicioCatalogo {
   bool llevaPeso;
   String grupoMuscular;
   String instrucciones;
+  String? urlMedia;
 
   EjercicioCatalogo({
     required this.id,
@@ -16,5 +17,6 @@ class EjercicioCatalogo {
     required this.llevaPeso,
     required this.grupoMuscular,
     required this.instrucciones,
+    this.urlMedia,
   });
 }

@@ -41,6 +41,9 @@ class _EditarEjercicioPaginaState
   late final TextEditingController
       instruccionesController;
 
+  late final TextEditingController
+      urlMediaController;
+
   bool llevaPeso = true;
   bool guardando = false;
 
@@ -79,6 +82,12 @@ class _EditarEjercicioPaginaState
           ejercicio?.instrucciones ?? '',
     );
 
+    urlMediaController =
+        TextEditingController(
+      text:
+          ejercicio?.urlMedia ?? '',
+    );
+
     llevaPeso =
         ejercicio?.llevaPeso ?? true;
   }
@@ -89,6 +98,7 @@ class _EditarEjercicioPaginaState
     grupoController.dispose();
     descripcionController.dispose();
     instruccionesController.dispose();
+    urlMediaController.dispose();
 
     super.dispose();
   }
@@ -137,6 +147,8 @@ class _EditarEjercicioPaginaState
             grupoController.text,
         instrucciones:
             instruccionesController.text,
+        urlMedia:
+            urlMediaController.text.trim(),
       );
 
       await ejercicioRepositorio
@@ -317,6 +329,32 @@ class _EditarEjercicioPaginaState
                     true,
                 border:
                     OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextField(
+              controller:
+                  urlMediaController,
+              enabled:
+                  !guardando,
+              keyboardType:
+                  TextInputType.url,
+              decoration:
+                  const InputDecoration(
+                labelText:
+                    'Enlace de demostración (GIF / Video)',
+                hintText:
+                    'Ej: https://media.giphy.com/.../ejercicio.gif',
+                helperText:
+                    'Pegá una URL de GIF o demostración para tus alumnos',
+                border:
+                    OutlineInputBorder(),
+                prefixIcon:
+                    Icon(
+                  Icons.play_circle_outline,
+                ),
               ),
             ),
 

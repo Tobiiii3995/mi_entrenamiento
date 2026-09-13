@@ -14,6 +14,7 @@ class RutinaRepositorio {
     required String creadorId,
     required String nombre,
     required bool llevaPeso,
+    String? urlMedia,
   }) async {
     await database
         .into(database.ejercicios)
@@ -23,6 +24,7 @@ class RutinaRepositorio {
             creadorId: creadorId,
             nombre: nombre,
             llevaPeso: Value(llevaPeso),
+            urlMedia: Value(urlMedia),
             actualizadoEn: Value(DateTime.now()),
           ),
         );
@@ -113,6 +115,7 @@ class RutinaRepositorio {
           creadorId: creadorId,
           nombre: ejercicio.nombre,
           llevaPeso: ejercicio.llevaPeso,
+          urlMedia: ejercicio.urlMedia,
         );
 
         await guardarEjercicioEnRutina(
@@ -225,6 +228,7 @@ class RutinaRepositorio {
             pesoAnterior: null,
             descansoSegundos:
                 relacion.descansoSegundos,
+            urlMedia: ejercicioDb.urlMedia,
           ),
         );
       }

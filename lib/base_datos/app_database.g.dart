@@ -1455,6 +1455,17 @@ class $EjerciciosTable extends Ejercicios
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _urlMediaMeta = const VerificationMeta(
+    'urlMedia',
+  );
+  @override
+  late final GeneratedColumn<String> urlMedia = GeneratedColumn<String>(
+    'url_media',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _creadoEnMeta = const VerificationMeta(
     'creadoEn',
   );
@@ -1504,6 +1515,7 @@ class $EjerciciosTable extends Ejercicios
     llevaPeso,
     grupoMuscular,
     instrucciones,
+    urlMedia,
     creadoEn,
     actualizadoEn,
     eliminado,
@@ -1574,6 +1586,12 @@ class $EjerciciosTable extends Ejercicios
         ),
       );
     }
+    if (data.containsKey('url_media')) {
+      context.handle(
+        _urlMediaMeta,
+        urlMedia.isAcceptableOrUnknown(data['url_media']!, _urlMediaMeta),
+      );
+    }
     if (data.containsKey('creado_en')) {
       context.handle(
         _creadoEnMeta,
@@ -1632,6 +1650,10 @@ class $EjerciciosTable extends Ejercicios
         DriftSqlType.string,
         data['${effectivePrefix}instrucciones'],
       ),
+      urlMedia: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}url_media'],
+      ),
       creadoEn: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}creado_en'],
@@ -1661,6 +1683,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
   final bool llevaPeso;
   final String? grupoMuscular;
   final String? instrucciones;
+  final String? urlMedia;
   final DateTime creadoEn;
   final DateTime actualizadoEn;
   final bool eliminado;
@@ -1672,6 +1695,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
     required this.llevaPeso,
     this.grupoMuscular,
     this.instrucciones,
+    this.urlMedia,
     required this.creadoEn,
     required this.actualizadoEn,
     required this.eliminado,
@@ -1691,6 +1715,9 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
     }
     if (!nullToAbsent || instrucciones != null) {
       map['instrucciones'] = Variable<String>(instrucciones);
+    }
+    if (!nullToAbsent || urlMedia != null) {
+      map['url_media'] = Variable<String>(urlMedia);
     }
     map['creado_en'] = Variable<DateTime>(creadoEn);
     map['actualizado_en'] = Variable<DateTime>(actualizadoEn);
@@ -1713,6 +1740,9 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
       instrucciones: instrucciones == null && nullToAbsent
           ? const Value.absent()
           : Value(instrucciones),
+      urlMedia: urlMedia == null && nullToAbsent
+          ? const Value.absent()
+          : Value(urlMedia),
       creadoEn: Value(creadoEn),
       actualizadoEn: Value(actualizadoEn),
       eliminado: Value(eliminado),
@@ -1732,6 +1762,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
       llevaPeso: serializer.fromJson<bool>(json['llevaPeso']),
       grupoMuscular: serializer.fromJson<String?>(json['grupoMuscular']),
       instrucciones: serializer.fromJson<String?>(json['instrucciones']),
+      urlMedia: serializer.fromJson<String?>(json['urlMedia']),
       creadoEn: serializer.fromJson<DateTime>(json['creadoEn']),
       actualizadoEn: serializer.fromJson<DateTime>(json['actualizadoEn']),
       eliminado: serializer.fromJson<bool>(json['eliminado']),
@@ -1748,6 +1779,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
       'llevaPeso': serializer.toJson<bool>(llevaPeso),
       'grupoMuscular': serializer.toJson<String?>(grupoMuscular),
       'instrucciones': serializer.toJson<String?>(instrucciones),
+      'urlMedia': serializer.toJson<String?>(urlMedia),
       'creadoEn': serializer.toJson<DateTime>(creadoEn),
       'actualizadoEn': serializer.toJson<DateTime>(actualizadoEn),
       'eliminado': serializer.toJson<bool>(eliminado),
@@ -1762,6 +1794,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
     bool? llevaPeso,
     Value<String?> grupoMuscular = const Value.absent(),
     Value<String?> instrucciones = const Value.absent(),
+    Value<String?> urlMedia = const Value.absent(),
     DateTime? creadoEn,
     DateTime? actualizadoEn,
     bool? eliminado,
@@ -1777,6 +1810,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
     instrucciones: instrucciones.present
         ? instrucciones.value
         : this.instrucciones,
+    urlMedia: urlMedia.present ? urlMedia.value : this.urlMedia,
     creadoEn: creadoEn ?? this.creadoEn,
     actualizadoEn: actualizadoEn ?? this.actualizadoEn,
     eliminado: eliminado ?? this.eliminado,
@@ -1796,6 +1830,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
       instrucciones: data.instrucciones.present
           ? data.instrucciones.value
           : this.instrucciones,
+      urlMedia: data.urlMedia.present ? data.urlMedia.value : this.urlMedia,
       creadoEn: data.creadoEn.present ? data.creadoEn.value : this.creadoEn,
       actualizadoEn: data.actualizadoEn.present
           ? data.actualizadoEn.value
@@ -1814,6 +1849,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
           ..write('llevaPeso: $llevaPeso, ')
           ..write('grupoMuscular: $grupoMuscular, ')
           ..write('instrucciones: $instrucciones, ')
+          ..write('urlMedia: $urlMedia, ')
           ..write('creadoEn: $creadoEn, ')
           ..write('actualizadoEn: $actualizadoEn, ')
           ..write('eliminado: $eliminado')
@@ -1830,6 +1866,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
     llevaPeso,
     grupoMuscular,
     instrucciones,
+    urlMedia,
     creadoEn,
     actualizadoEn,
     eliminado,
@@ -1845,6 +1882,7 @@ class EjercicioDb extends DataClass implements Insertable<EjercicioDb> {
           other.llevaPeso == this.llevaPeso &&
           other.grupoMuscular == this.grupoMuscular &&
           other.instrucciones == this.instrucciones &&
+          other.urlMedia == this.urlMedia &&
           other.creadoEn == this.creadoEn &&
           other.actualizadoEn == this.actualizadoEn &&
           other.eliminado == this.eliminado);
@@ -1858,6 +1896,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
   final Value<bool> llevaPeso;
   final Value<String?> grupoMuscular;
   final Value<String?> instrucciones;
+  final Value<String?> urlMedia;
   final Value<DateTime> creadoEn;
   final Value<DateTime> actualizadoEn;
   final Value<bool> eliminado;
@@ -1870,6 +1909,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
     this.llevaPeso = const Value.absent(),
     this.grupoMuscular = const Value.absent(),
     this.instrucciones = const Value.absent(),
+    this.urlMedia = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.actualizadoEn = const Value.absent(),
     this.eliminado = const Value.absent(),
@@ -1883,6 +1923,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
     this.llevaPeso = const Value.absent(),
     this.grupoMuscular = const Value.absent(),
     this.instrucciones = const Value.absent(),
+    this.urlMedia = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.actualizadoEn = const Value.absent(),
     this.eliminado = const Value.absent(),
@@ -1898,6 +1939,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
     Expression<bool>? llevaPeso,
     Expression<String>? grupoMuscular,
     Expression<String>? instrucciones,
+    Expression<String>? urlMedia,
     Expression<DateTime>? creadoEn,
     Expression<DateTime>? actualizadoEn,
     Expression<bool>? eliminado,
@@ -1911,6 +1953,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
       if (llevaPeso != null) 'lleva_peso': llevaPeso,
       if (grupoMuscular != null) 'grupo_muscular': grupoMuscular,
       if (instrucciones != null) 'instrucciones': instrucciones,
+      if (urlMedia != null) 'url_media': urlMedia,
       if (creadoEn != null) 'creado_en': creadoEn,
       if (actualizadoEn != null) 'actualizado_en': actualizadoEn,
       if (eliminado != null) 'eliminado': eliminado,
@@ -1926,6 +1969,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
     Value<bool>? llevaPeso,
     Value<String?>? grupoMuscular,
     Value<String?>? instrucciones,
+    Value<String?>? urlMedia,
     Value<DateTime>? creadoEn,
     Value<DateTime>? actualizadoEn,
     Value<bool>? eliminado,
@@ -1939,6 +1983,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
       llevaPeso: llevaPeso ?? this.llevaPeso,
       grupoMuscular: grupoMuscular ?? this.grupoMuscular,
       instrucciones: instrucciones ?? this.instrucciones,
+      urlMedia: urlMedia ?? this.urlMedia,
       creadoEn: creadoEn ?? this.creadoEn,
       actualizadoEn: actualizadoEn ?? this.actualizadoEn,
       eliminado: eliminado ?? this.eliminado,
@@ -1970,6 +2015,9 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
     if (instrucciones.present) {
       map['instrucciones'] = Variable<String>(instrucciones.value);
     }
+    if (urlMedia.present) {
+      map['url_media'] = Variable<String>(urlMedia.value);
+    }
     if (creadoEn.present) {
       map['creado_en'] = Variable<DateTime>(creadoEn.value);
     }
@@ -1995,6 +2043,7 @@ class EjerciciosCompanion extends UpdateCompanion<EjercicioDb> {
           ..write('llevaPeso: $llevaPeso, ')
           ..write('grupoMuscular: $grupoMuscular, ')
           ..write('instrucciones: $instrucciones, ')
+          ..write('urlMedia: $urlMedia, ')
           ..write('creadoEn: $creadoEn, ')
           ..write('actualizadoEn: $actualizadoEn, ')
           ..write('eliminado: $eliminado, ')
@@ -6425,6 +6474,7 @@ typedef $$EjerciciosTableCreateCompanionBuilder =
       Value<bool> llevaPeso,
       Value<String?> grupoMuscular,
       Value<String?> instrucciones,
+      Value<String?> urlMedia,
       Value<DateTime> creadoEn,
       Value<DateTime> actualizadoEn,
       Value<bool> eliminado,
@@ -6439,6 +6489,7 @@ typedef $$EjerciciosTableUpdateCompanionBuilder =
       Value<bool> llevaPeso,
       Value<String?> grupoMuscular,
       Value<String?> instrucciones,
+      Value<String?> urlMedia,
       Value<DateTime> creadoEn,
       Value<DateTime> actualizadoEn,
       Value<bool> eliminado,
@@ -6486,6 +6537,11 @@ class $$EjerciciosTableFilterComposer
 
   ColumnFilters<String> get instrucciones => $composableBuilder(
     column: $table.instrucciones,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get urlMedia => $composableBuilder(
+    column: $table.urlMedia,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6549,6 +6605,11 @@ class $$EjerciciosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get urlMedia => $composableBuilder(
+    column: $table.urlMedia,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get creadoEn => $composableBuilder(
     column: $table.creadoEn,
     builder: (column) => ColumnOrderings(column),
@@ -6601,6 +6662,9 @@ class $$EjerciciosTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get urlMedia =>
+      $composableBuilder(column: $table.urlMedia, builder: (column) => column);
+
   GeneratedColumn<DateTime> get creadoEn =>
       $composableBuilder(column: $table.creadoEn, builder: (column) => column);
 
@@ -6651,6 +6715,7 @@ class $$EjerciciosTableTableManager
                 Value<bool> llevaPeso = const Value.absent(),
                 Value<String?> grupoMuscular = const Value.absent(),
                 Value<String?> instrucciones = const Value.absent(),
+                Value<String?> urlMedia = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<DateTime> actualizadoEn = const Value.absent(),
                 Value<bool> eliminado = const Value.absent(),
@@ -6663,6 +6728,7 @@ class $$EjerciciosTableTableManager
                 llevaPeso: llevaPeso,
                 grupoMuscular: grupoMuscular,
                 instrucciones: instrucciones,
+                urlMedia: urlMedia,
                 creadoEn: creadoEn,
                 actualizadoEn: actualizadoEn,
                 eliminado: eliminado,
@@ -6677,6 +6743,7 @@ class $$EjerciciosTableTableManager
                 Value<bool> llevaPeso = const Value.absent(),
                 Value<String?> grupoMuscular = const Value.absent(),
                 Value<String?> instrucciones = const Value.absent(),
+                Value<String?> urlMedia = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<DateTime> actualizadoEn = const Value.absent(),
                 Value<bool> eliminado = const Value.absent(),
@@ -6689,6 +6756,7 @@ class $$EjerciciosTableTableManager
                 llevaPeso: llevaPeso,
                 grupoMuscular: grupoMuscular,
                 instrucciones: instrucciones,
+                urlMedia: urlMedia,
                 creadoEn: creadoEn,
                 actualizadoEn: actualizadoEn,
                 eliminado: eliminado,

@@ -116,6 +116,8 @@ class EjercicioRepositorio {
           ejercicio.grupoMuscular.trim(),
       'instrucciones':
           ejercicio.instrucciones.trim(),
+      'urlMedia':
+          (ejercicio.urlMedia ?? '').trim(),
       'eliminado':
           false,
       'actualizadoEn':
@@ -159,6 +161,12 @@ class EjercicioRepositorio {
                 Value(
               _textoNullable(
                 ejercicio.instrucciones,
+              ),
+            ),
+            urlMedia:
+                Value(
+              _textoNullable(
+                ejercicio.urlMedia ?? '',
               ),
             ),
             actualizadoEn:
@@ -309,6 +317,8 @@ class EjercicioRepositorio {
               registro.grupoMuscular ?? '',
           instrucciones:
               registro.instrucciones ?? '',
+          urlMedia:
+              registro.urlMedia,
         );
       },
     ).toList();
@@ -352,6 +362,8 @@ class EjercicioRepositorio {
               ejercicio.grupoMuscular.trim(),
           'instrucciones':
               ejercicio.instrucciones.trim(),
+          'urlMedia':
+              (ejercicio.urlMedia ?? '').trim(),
           'eliminado':
               false,
           'actualizadoEn':
@@ -388,6 +400,8 @@ class EjercicioRepositorio {
       instrucciones:
           (datos['instrucciones'] ?? '')
               .toString(),
+      urlMedia:
+          datos['urlMedia']?.toString(),
     );
   }
 

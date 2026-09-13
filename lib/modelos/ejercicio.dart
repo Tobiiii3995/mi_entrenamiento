@@ -6,6 +6,7 @@ class Ejercicio {
   final bool llevaPeso;
   final double? pesoAnterior;
   final int descansoSegundos;
+  final String? urlMedia;
 
   Ejercicio({
     required this.id,
@@ -15,5 +16,6 @@ class Ejercicio {
     required this.llevaPeso,
     this.pesoAnterior,
     required this.descansoSegundos,
+    this.urlMedia,
   });
 }

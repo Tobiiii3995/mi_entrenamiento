@@ -194,6 +194,12 @@ class RutinaProfesorRepositorio {
                       item.ejercicio.instrucciones,
                     ),
                   ),
+                  urlMedia:
+                      Value(
+                    _textoNullable(
+                      item.ejercicio.urlMedia,
+                    ),
+                  ),
                   actualizadoEn:
                       Value(
                     ahora,
@@ -280,6 +286,8 @@ class RutinaProfesorRepositorio {
                 item.ejercicio.grupoMuscular.trim(),
             'instrucciones':
                 item.ejercicio.instrucciones.trim(),
+            'urlMedia':
+                (item.ejercicio.urlMedia ?? '').trim(),
           },
         };
       },
@@ -493,6 +501,11 @@ class RutinaProfesorRepositorio {
                   .toString(),
           instrucciones:
               (ejercicioDato['instrucciones'] ?? '')
+                  .toString(),
+          urlMedia:
+              (ejercicioDato['urlMedia'] ??
+                      ejercicioDato['url_media'] ??
+                      '')
                   .toString(),
         );
 
@@ -733,6 +746,8 @@ class RutinaProfesorRepositorio {
             ejercicioDb.grupoMuscular ?? '',
         instrucciones:
             ejercicioDb.instrucciones ?? '',
+        urlMedia:
+            ejercicioDb.urlMedia ?? '',
       );
 
       ejercicios.add(
@@ -770,8 +785,12 @@ class RutinaProfesorRepositorio {
   }
 
   String? _textoNullable(
-    String texto,
+    String? texto,
   ) {
+    if (texto == null) {
+      return null;
+    }
+
     final limpio =
         texto.trim();
 

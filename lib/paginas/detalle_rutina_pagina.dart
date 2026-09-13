@@ -11,6 +11,7 @@ import '../repositorios/entrenamiento_repositorio.dart';
 import '../servicios/base_datos_servicio.dart';
 import '../servicios/datos_app.dart';
 import '../widgets/dato_ejercicio.dart';
+import '../widgets/dialogo_demostracion.dart';
 
 class DetalleRutinaPagina extends StatefulWidget {
   final Rutina rutina;
@@ -821,6 +822,44 @@ class _DetalleRutinaPaginaState
                             ),
                           ],
                         ),
+
+                        if (ejercicio.urlMedia != null &&
+                            ejercicio.urlMedia!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => DialogoDemostracion(
+                                    nombreEjercicio: ejercicio.nombre,
+                                    urlMedia: ejercicio.urlMedia!,
+                                  ),
+                                );
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              icon: const Icon(
+                                Icons.play_circle_outline,
+                                size: 18,
+                              ),
+                              label: const Text(
+                                'Ver ejemplo',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
 
                         const SizedBox(
                           height: 14,
