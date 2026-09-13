@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../modelos/ejercicio_catalogo.dart';
 import '../../repositorios/ejercicio_repositorio.dart';
+import '../../servicios/almacenamiento_servicio.dart';
 import '../../servicios/base_datos_servicio.dart';
+import '../../widgets/dialogo_demostracion.dart';
 
 class EditarEjercicioPagina
     extends StatefulWidget {
@@ -46,6 +48,46 @@ class _EditarEjercicioPaginaState
 
   bool llevaPeso = true;
   bool guardando = false;
+  bool subiendoArchivo = false;
+
+  Future<void> subirArchivoDemostracion() async {
+    if (subiendoArchivo || guardando) {
+      return;
+    }
+
+    setState(() {
+      subiendoArchivo = true;
+    });
+
+    try {
+      final url = await AlmacenamientoServicio.seleccionarYSubirDemostracion();
+      if (url != null && mounted) {
+        setState(() {
+          urlMediaController.text = url;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Archivo subido con éxito!'),
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo subir el archivo: $error'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          subiendoArchivo = false;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -338,17 +380,20 @@ class _EditarEjercicioPaginaState
               controller:
                   urlMediaController,
               enabled:
-                  !guardando,
+                  !guardando && !subiendoArchivo,
               keyboardType:
                   TextInputType.url,
+              onChanged: (_) {
+                setState(() {});
+              },
               decoration:
                   const InputDecoration(
                 labelText:
-                    'Enlace de demostración (GIF / Video)',
+                    'Enlace o archivo de demostración (GIF / Video)',
                 hintText:
-                    'Ej: https://media.giphy.com/.../ejercicio.gif',
+                    'Ej: https://... o subí un archivo local',
                 helperText:
-                    'Pegá una URL de GIF o demostración para tus alumnos',
+                    'Podés pegar una URL o subir un GIF/Video desde tu dispositivo',
                 border:
                     OutlineInputBorder(),
                 prefixIcon:
@@ -356,6 +401,57 @@ class _EditarEjercicioPaginaState
                   Icons.play_circle_outline,
                 ),
               ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: (guardando || subiendoArchivo)
+                      ? null
+                      : subirArchivoDemostracion,
+                  icon: subiendoArchivo
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.cloud_upload_outlined,
+                          size: 18,
+                        ),
+                  label: Text(
+                    subiendoArchivo
+                        ? 'Subiendo...'
+                        : 'Subir GIF / Video local',
+                  ),
+                ),
+                if (urlMediaController.text.trim().isNotEmpty)
+                  TextButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => DialogoDemostracion(
+                          nombreEjercicio:
+                              nombreController.text.trim().isEmpty
+                                  ? 'Ejercicio'
+                                  : nombreController.text.trim(),
+                          urlMedia: urlMediaController.text,
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.visibility_outlined,
+                      size: 18,
+                    ),
+                    label: const Text('Probar vista previa'),
+                  ),
+              ],
             ),
 
             const SizedBox(height: 28),

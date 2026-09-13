@@ -29,7 +29,9 @@ class DialogoDemostracion extends StatelessWidget {
         urlMinuscula.contains('.webp') ||
         urlMinuscula.contains('giphy.com') ||
         urlMinuscula.contains('tenor.com') ||
-        urlMinuscula.contains('imgur.com');
+        urlMinuscula.contains('imgur.com') ||
+        urlMinuscula.contains('pinimg.com') ||
+        urlMinuscula.contains('firebasestorage.googleapis.com');
   }
 
   Future<void> _abrirEnlace(BuildContext context, String url) async {
@@ -70,111 +72,134 @@ class DialogoDemostracion extends StatelessWidget {
         ],
       ),
       contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (esImagen) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                urlLimpia,
-                fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text(
-                          'No se pudo cargar la imagen/GIF.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (esImagen) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  urlLimpia,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        border: Border.all(color: Colors.amber.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.warning_amber_rounded,
+                              size: 40, color: Colors.amber),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Vista previa no disponible por restricciones del sitio externo (CORS / Hotlink).',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: () => _abrirEnlace(context, urlLimpia),
+                            icon: const Icon(Icons.open_in_new, size: 16),
+                            label: const Text('Abrir imagen en navegador'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.amber.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '💡 Consejo: Podés subir el archivo GIF/Video directamente desde tu dispositivo al crear el ejercicio.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 11, color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ] else if (youtubeId != null) ...[
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    'https://img.youtube.com/vi/$youtubeId/hqdefault.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 180,
-                      color: Colors.black12,
-                      child: const Center(
-                        child: Icon(Icons.video_library, size: 48),
+            ] else if (youtubeId != null) ...[
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      'https://img.youtube.com/vi/$youtubeId/hqdefault.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 180,
+                        color: Colors.black12,
+                        child: const Center(
+                          child: Icon(Icons.video_library, size: 48),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                InkWell(
-                  onTap: () => _abrirEnlace(context, urlLimpia),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
+                  InkWell(
+                    onTap: () => _abrirEnlace(context, urlLimpia),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Toca para ver el video en YouTube',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-          ] else ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.open_in_new, size: 40, color: Colors.blue),
-                  const SizedBox(height: 8),
-                  Text(
-                    urlLimpia,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.blue.shade900),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 12),
+              const Text(
+                'Toca para ver el video en YouTube',
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.open_in_new, size: 40, color: Colors.blue),
+                    const SizedBox(height: 8),
+                    Text(
+                      urlLimpia,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.blue.shade900),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
       actions: [
-        if (!esImagen)
+        if (!esImagen || youtubeId != null)
           FilledButton.icon(
             onPressed: () => _abrirEnlace(context, urlLimpia),
             icon: const Icon(Icons.open_in_browser),

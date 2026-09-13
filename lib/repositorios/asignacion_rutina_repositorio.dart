@@ -280,8 +280,14 @@ class AsignacionRutinaRepositorio {
         final descansoDato =
             item['descansoSegundos'];
 
+        final ejercicioSubMap =
+            item['ejercicio'] is Map ? item['ejercicio'] as Map : null;
+
         final urlMediaRaw =
-            item['urlMedia'] ?? item['url_media'];
+            item['urlMedia'] ??
+                item['url_media'] ??
+                ejercicioSubMap?['urlMedia'] ??
+                ejercicioSubMap?['url_media'];
 
         final urlMediaTexto =
             urlMediaRaw?.toString().trim();
