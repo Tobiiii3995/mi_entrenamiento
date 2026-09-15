@@ -160,10 +160,11 @@ class _EditarPerfilPaginaState
       }
     } catch (_) {
     } finally {
-      if (!mounted) return;
-      setState(() {
-        cargando = false;
-      });
+      if (mounted) {
+        setState(() {
+          cargando = false;
+        });
+      }
     }
   }
 

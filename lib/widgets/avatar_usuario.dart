@@ -41,7 +41,7 @@ class AvatarUsuario extends StatelessWidget {
           radius: radio,
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           backgroundImage: NetworkImage(url),
-          onBackgroundImageError: (_, __) {},
+          onBackgroundImageError: (exception, stackTrace) {},
           child: null,
         );
       }

@@ -70,7 +70,7 @@ GitHub representa el estado oficial del proyecto:
 
 **Agente:** Antigravity  
 **Fecha:** 2026-09-15  
-**Último commit:** `e9153de`
+**Último commit:** `14a606b`
 
 ### Trabajo realizado
 - Implementación de foto de perfil de usuario (`fotoUrl` en `Usuario`, `AlumnoProfesor`, `UsuarioFirestoreServicio` y widget `AvatarUsuario`).
@@ -78,7 +78,9 @@ GitHub representa el estado oficial del proyecto:
 - Búsqueda previa y diálogo de confirmación con foto y nombre del alumno en `AgregarAlumnoPagina`.
 - Unificación de "Vincular alumno" dentro de la pantalla `AlumnosProfesorPagina` con botón flotante y accesos directos.
 - Posibilidad de crear nuevos ejercicios directamente desde el selector de la rutina en `EditarRutinaPagina`.
-- Actualización de bitácora en `PROJECT_STATUS.md`.
+- Configuración y validación del entorno de desarrollo local (Flutter SDK, OpenJDK 17, Android SDK Licenses, Android ADB).
+- Compilación exitosa del APK release (`build\app\outputs\flutter-apk\app-release.apk`).
+- `flutter analyze` validado con 0 errores/advertencias.
 
 ### Archivos modificados
 - `lib/widgets/avatar_usuario.dart` (Nuevo)
@@ -95,11 +97,14 @@ GitHub representa el estado oficial del proyecto:
 - `lib/paginas/profesor/detalle_alumno_profesor_pagina.dart`
 - `lib/paginas/profesor/agregar_alumno_pagina.dart`
 - `lib/paginas/profesor/editar_rutina_pagina.dart`
+- `analysis_options.yaml`
+- `android/app/build.gradle.kts`
 - `PROJECT_STATUS.md`
 
 ### Pruebas realizadas
-- Revisión de tipos Dart y validación de null-safety en todos los modelos y servicios modificados.
+- `flutter analyze`: 0 issues.
+- `flutter build apk --release`: Build exitoso (`app-release.apk` 63.7MB).
 - Verificación del árbol de trabajo de Git.
 
 ### Pendiente
-- Feedback y próximas solicitudes del usuario.
+- Aceptar permiso en pantalla del dispositivo Android o habilitar "Instalar vía USB" en opciones de desarrollador para la instalación directa por ADB.
