@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../../modelos/alumno_profesor.dart';
 import '../../repositorios/alumno_repositorio.dart';
 import '../../servicios/base_datos_servicio.dart';
+import '../../widgets/avatar_usuario.dart';
+import 'agregar_alumno_pagina.dart';
 import 'detalle_alumno_profesor_pagina.dart';
 
-class AlumnosProfesorPagina
-    extends StatefulWidget {
+class AlumnosProfesorPagina extends StatefulWidget {
   final String profesorId;
 
   const AlumnosProfesorPagina({
@@ -15,23 +16,29 @@ class AlumnosProfesorPagina
   });
 
   @override
-  State<AlumnosProfesorPagina>
-      createState() =>
-          _AlumnosProfesorPaginaState();
+  State<AlumnosProfesorPagina> createState() =>
+      _AlumnosProfesorPaginaState();
 }
 
 class _AlumnosProfesorPaginaState
     extends State<AlumnosProfesorPagina> {
-  late final AlumnoRepositorio
-      alumnoRepositorio;
+  late final AlumnoRepositorio alumnoRepositorio;
 
   @override
   void initState() {
     super.initState();
 
-    alumnoRepositorio =
-        AlumnoRepositorio(
+    alumnoRepositorio = AlumnoRepositorio(
       BaseDatosServicio.db,
+    );
+  }
+
+  Future<void> abrirVincularAlumno() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AgregarAlumnoPagina(),
+      ),
     );
   }
 
@@ -41,12 +48,9 @@ class _AlumnosProfesorPaginaState
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            DetalleAlumnoProfesorPagina(
-          profesorId:
-              widget.profesorId,
-          alumno:
-              alumno,
+        builder: (context) => DetalleAlumnoProfesorPagina(
+          profesorId: widget.profesorId,
+          alumno: alumno,
         ),
       ),
     );
@@ -61,45 +65,43 @@ class _AlumnosProfesorPaginaState
         title: const Text(
           'Alumnos',
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add_alt_1),
+            tooltip: 'Vincular alumno',
+            onPressed: abrirVincularAlumno,
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: abrirVincularAlumno,
+        icon: const Icon(Icons.person_add_alt_1),
+        label: const Text('Vincular alumno'),
       ),
       body: SafeArea(
         top: false,
-        child: StreamBuilder<
-            List<AlumnoProfesor>>(
-          stream:
-              alumnoRepositorio
-                  .escucharAlumnosVinculados(
+        child: StreamBuilder<List<AlumnoProfesor>>(
+          stream: alumnoRepositorio.escucharAlumnosVinculados(
             widget.profesorId,
           ),
-          builder:
-              (context, snapshot) {
+          builder: (context, snapshot) {
             if (snapshot.hasError) {
               return const Center(
                 child: Padding(
-                  padding:
-                      EdgeInsets.all(
-                    30,
-                  ),
+                  padding: EdgeInsets.all(30),
                   child: Column(
-                    mainAxisSize:
-                        MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons
-                            .error_outline,
+                        Icons.error_outline,
                         size: 44,
                       ),
-                      SizedBox(
-                        height: 14,
-                      ),
+                      SizedBox(height: 14),
                       Text(
                         'No se pudieron cargar los alumnos.',
-                        textAlign:
-                            TextAlign.center,
-                        style:
-                            TextStyle(
-                          fontSize:
-                              17,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 17,
                         ),
                       ),
                     ],
@@ -108,70 +110,48 @@ class _AlumnosProfesorPaginaState
               );
             }
 
-            if (snapshot
-                    .connectionState ==
-                ConnectionState
-                    .waiting) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                child:
-                    CircularProgressIndicator(),
+                child: CircularProgressIndicator(),
               );
             }
 
-            final alumnos =
-                snapshot.data ??
-                    const [];
+            final alumnos = snapshot.data ?? const [];
 
             if (alumnos.isEmpty) {
-              return const Center(
+              return Center(
                 child: Padding(
-                  padding:
-                      EdgeInsets.all(
-                    30,
-                  ),
+                  padding: const EdgeInsets.all(30),
                   child: Column(
-                    mainAxisSize:
-                        MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons
-                            .people_outline,
+                      const Icon(
+                        Icons.people_outline,
                         size: 60,
                       ),
-
-                      SizedBox(
-                        height: 18,
-                      ),
-
-                      Text(
+                      const SizedBox(height: 18),
+                      const Text(
                         'Todavía no tenés alumnos vinculados.',
-                        textAlign:
-                            TextAlign.center,
-                        style:
-                            TextStyle(
-                          fontSize:
-                              19,
-                          fontWeight:
-                              FontWeight
-                                  .bold,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-
-                      SizedBox(
-                        height: 10,
-                      ),
-
-                      Text(
-                        'Para agregar un alumno, usá la opción "Vincular alumno" del Panel Profesor e ingresá el código que te comparta.',
-                        textAlign:
-                            TextAlign.center,
-                        style:
-                            TextStyle(
-                          fontSize:
-                              15,
-                          color:
-                              Colors.grey,
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Pedile al alumno su código de vinculación desde su perfil para agregarlo.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
                         ),
+                      ),
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        onPressed: abrirVincularAlumno,
+                        icon: const Icon(Icons.person_add_alt_1),
+                        label: const Text('Vincular nuevo alumno'),
                       ),
                     ],
                   ),
@@ -182,9 +162,7 @@ class _AlumnosProfesorPaginaState
             return Column(
               children: [
                 Padding(
-                  padding:
-                      const EdgeInsets
-                          .fromLTRB(
+                  padding: const EdgeInsets.fromLTRB(
                     20,
                     18,
                     20,
@@ -194,135 +172,76 @@ class _AlumnosProfesorPaginaState
                     children: [
                       Expanded(
                         child: Text(
-                          alumnos.length ==
-                                  1
+                          alumnos.length == 1
                               ? '1 alumno vinculado'
                               : '${alumnos.length} alumnos vinculados',
-                          style:
-                              const TextStyle(
-                            fontSize:
-                                15,
-                            color:
-                                Colors.grey,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 Expanded(
-                  child:
-                      ListView.builder(
-                    padding:
-                        const EdgeInsets
-                            .fromLTRB(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(
                       20,
                       10,
                       20,
                       100,
                     ),
-                    itemCount:
-                        alumnos.length,
-                    itemBuilder:
-                        (
-                      context,
-                      index,
-                    ) {
-                      final alumno =
-                          alumnos[
-                              index];
+                    itemCount: alumnos.length,
+                    itemBuilder: (context, index) {
+                      final alumno = alumnos[index];
 
                       return Card(
-                        margin:
-                            const EdgeInsets
-                                .only(
+                        margin: const EdgeInsets.only(
                           bottom: 12,
                         ),
-                        child:
-                            ListTile(
-                          contentPadding:
-                              const EdgeInsets
-                                  .all(
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(
                             14,
                           ),
-                          leading:
-                              const CircleAvatar(
-                            child:
-                                Icon(
-                              Icons
-                                  .person,
-                            ),
+                          leading: AvatarUsuario(
+                            fotoUrl: alumno.fotoUrl,
+                            nombre: alumno.nombre,
+                            radio: 22,
                           ),
-                          title:
-                              Text(
+                          title: Text(
                             alumno.nombre,
-                            style:
-                                const TextStyle(
-                              fontSize:
-                                  18,
-                              fontWeight:
-                                  FontWeight
-                                      .bold,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          subtitle:
-                              Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (alumno
-                                  .correo
-                                  .trim()
-                                  .isNotEmpty) ...[
-                                const SizedBox(
-                                  height:
-                                      3,
-                                ),
-                                Text(
-                                  alumno
-                                      .correo,
-                                ),
+                              if (alumno.correo.trim().isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(alumno.correo),
                               ],
-
-                              const SizedBox(
-                                height:
-                                    4,
-                              ),
-
+                              const SizedBox(height: 4),
                               const Row(
-                                mainAxisSize:
-                                    MainAxisSize
-                                        .min,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons
-                                        .link,
-                                    size:
-                                        15,
+                                    Icons.link,
+                                    size: 15,
                                   ),
-                                  SizedBox(
-                                    width:
-                                        4,
-                                  ),
-                                  Text(
-                                    'Vinculado',
-                                  ),
+                                  SizedBox(width: 4),
+                                  Text('Vinculado'),
                                 ],
                               ),
                             ],
                           ),
-                          trailing:
-                              const Icon(
-                            Icons
-                                .chevron_right,
+                          trailing: const Icon(
+                            Icons.chevron_right,
                           ),
-                          onTap:
-                              () {
-                            abrirAlumno(
-                              alumno,
-                            );
+                          onTap: () {
+                            abrirAlumno(alumno);
                           },
                         ),
                       );

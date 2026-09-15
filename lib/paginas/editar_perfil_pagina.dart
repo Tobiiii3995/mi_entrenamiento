@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 
 import '../modelos/registro_peso.dart';
 import '../repositorios/usuario_repositorio.dart';
+import '../servicios/almacenamiento_servicio.dart';
 import '../servicios/base_datos_servicio.dart';
 import '../servicios/datos_app.dart';
 import '../servicios/usuario_firestore_servicio.dart';
+import '../widgets/avatar_usuario.dart';
 
 class EditarPerfilPagina extends StatefulWidget {
   const EditarPerfilPagina({
@@ -28,9 +30,11 @@ class _EditarPerfilPaginaState
 
   DateTime? fechaNacimiento;
   String? objetivo;
+  String fotoUrl = '';
 
   bool cargando = true;
   bool guardando = false;
+  bool subiendoFoto = false;
 
   final List<String> objetivos = const [
     'Mejorar condición física',
@@ -70,6 +74,8 @@ class _EditarPerfilPaginaState
           ? usuario.peso.toString()
           : '',
     );
+
+    fotoUrl = usuario.fotoUrl;
 
     if (objetivos.contains(usuario.objetivo)) {
       objetivo =
@@ -143,15 +149,56 @@ class _EditarPerfilPaginaState
         nombreController.text =
             nombre;
       }
+
+      final fotoUrlFs =
+          (datos['fotoUrl'] ?? '')
+              .toString()
+              .trim();
+
+      if (fotoUrlFs.isNotEmpty) {
+        fotoUrl = fotoUrlFs;
+      }
     } catch (_) {
-      // Si no podemos recuperar los datos
-      // de la nube mantenemos los locales.
-      // La fecha deberá seleccionarse antes
-      // de guardar si no estaba disponible.
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        cargando = false;
+      });
+    }
+  }
+
+  Future<void> seleccionarYSubirFoto() async {
+    if (subiendoFoto || guardando) return;
+
+    setState(() {
+      subiendoFoto = true;
+    });
+
+    try {
+      final nuevaUrl = await AlmacenamientoServicio.seleccionarYSubirDemostracion();
+      if (nuevaUrl != null && mounted) {
+        setState(() {
+          fotoUrl = nuevaUrl;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Foto seleccionada con éxito! Guardá los cambios para confirmarla.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        var mensaje = e.toString().replaceFirst('Exception: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo cargar la foto: $mensaje'),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
-          cargando = false;
+          subiendoFoto = false;
         });
       }
     }
@@ -370,6 +417,7 @@ class _EditarPerfilPaginaState
         altura: altura,
         peso: peso,
         objetivo: objetivo!,
+        fotoUrl: fotoUrl,
       );
 
       // Después actualizamos el usuario
@@ -388,6 +436,9 @@ class _EditarPerfilPaginaState
 
       usuario.objetivo =
           objetivo!;
+
+      usuario.fotoUrl =
+          fotoUrl;
 
       await usuarioRepositorio
           .guardarUsuario(
@@ -489,6 +540,70 @@ class _EditarPerfilPaginaState
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Column(
+                  children: [
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        AvatarUsuario(
+                          fotoUrl: fotoUrl,
+                          nombre: nombreController.text.isNotEmpty
+                              ? nombreController.text
+                              : DatosApp.usuarioActual.nombre,
+                          radio: 50,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Material(
+                            color: Theme.of(context).colorScheme.primary,
+                            shape: const CircleBorder(),
+                            elevation: 3,
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: subiendoFoto || guardando
+                                  ? null
+                                  : seleccionarYSubirFoto,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: subiendoFoto
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: subiendoFoto || guardando
+                          ? null
+                          : seleccionarYSubirFoto,
+                      icon: const Icon(
+                        Icons.photo_library_outlined,
+                        size: 16,
+                      ),
+                      label: const Text('Cambiar foto de perfil'),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               const Text(
                 'Datos personales',
                 style: TextStyle(

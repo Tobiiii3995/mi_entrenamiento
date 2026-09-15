@@ -5,6 +5,7 @@ import '../../modelos/rutina_editor.dart';
 import '../../repositorios/ejercicio_repositorio.dart';
 import '../../repositorios/rutina_profesor_repositorio.dart';
 import '../../servicios/base_datos_servicio.dart';
+import 'editar_ejercicio_pagina.dart';
 
 class EditarRutinaPagina extends StatefulWidget {
   final String profesorId;
@@ -110,42 +111,61 @@ class _EditarRutinaPaginaState extends State<EditarRutinaPagina> {
     );
   }
 
+  Future<void> crearNuevoEjercicioDesdeRutina([BuildContext? modalContext]) async {
+    final creado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditarEjercicioPagina(
+          profesorId: widget.profesorId,
+        ),
+      ),
+    );
+
+    if (creado == true) {
+      await cargarBiblioteca();
+      if (modalContext != null && modalContext.mounted) {
+        Navigator.pop(modalContext);
+      }
+      if (biblioteca.isNotEmpty) {
+        final nuevo = biblioteca.last;
+        if (!ejercicioYaAgregado(nuevo.id)) {
+          agregarEjercicio(nuevo);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('¡"${nuevo.nombre}" añadido a la rutina!'),
+              ),
+            );
+          }
+        }
+      }
+    }
+  }
+
   Future<void> mostrarSelectorEjercicios() async {
     if (cargandoBiblioteca) {
-      return;
-    }
-
-    if (biblioteca.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Primero debés crear ejercicios en tu biblioteca.',
-          ),
-        ),
-      );
-
       return;
     }
 
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (context) {
+      builder: (bottomSheetContext) {
         return SafeArea(
           child: FractionallySizedBox(
             heightFactor: 0.85,
             child: Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
                     20,
-                    20,
+                    16,
                     20,
                     12,
                   ),
                   child: Row(
                     children: [
-                      Expanded(
+                      const Expanded(
                         child: Text(
                           'Agregar ejercicio',
                           style: TextStyle(
@@ -154,63 +174,110 @@ class _EditarRutinaPaginaState extends State<EditarRutinaPagina> {
                           ),
                         ),
                       ),
+                      FilledButton.tonalIcon(
+                        onPressed: () => crearNuevoEjercicioDesdeRutina(bottomSheetContext),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Nuevo'),
+                      ),
                     ],
                   ),
                 ),
                 const Divider(height: 1),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: biblioteca.length,
-                    itemBuilder: (context, index) {
-                      final ejercicio = biblioteca[index];
-
-                      final agregado = ejercicioYaAgregado(
-                        ejercicio.id,
-                      );
-
-                      return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            child: Icon(
-                              ejercicio.llevaPeso
-                                  ? Icons.fitness_center
-                                  : Icons.directions_run,
+                if (biblioteca.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.fitness_center,
+                              size: 52,
+                              color: Colors.grey,
                             ),
-                          ),
-                          title: Text(
-                            ejercicio.nombre,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
+                            const SizedBox(height: 14),
+                            const Text(
+                              'Todavía no tenés ejercicios en tu biblioteca.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          subtitle: ejercicio.grupoMuscular.trim().isEmpty
-                              ? null
-                              : Text(
-                                  ejercicio.grupoMuscular,
-                                ),
-                          trailing: agregado
-                              ? const Icon(
-                                  Icons.check_circle,
-                                )
-                              : const Icon(
-                                  Icons.add_circle_outline,
-                                ),
-                          enabled: !agregado,
-                          onTap: agregado
-                              ? null
-                              : () {
-                                  agregarEjercicio(
-                                    ejercicio,
-                                  );
-
-                                  Navigator.pop(context);
-                                },
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Podés crear uno ahora mismo sin salir de la rutina.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            FilledButton.icon(
+                              onPressed: () => crearNuevoEjercicioDesdeRutina(bottomSheetContext),
+                              icon: const Icon(Icons.add),
+                              label: const Text('Crear ejercicio'),
+                            ),
+                          ],
                         ),
-                      );
-                    },
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: biblioteca.length,
+                      itemBuilder: (context, index) {
+                        final ejercicio = biblioteca[index];
+
+                        final agregado = ejercicioYaAgregado(
+                          ejercicio.id,
+                        );
+
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Icon(
+                                ejercicio.llevaPeso
+                                    ? Icons.fitness_center
+                                    : Icons.directions_run,
+                              ),
+                            ),
+                            title: Text(
+                              ejercicio.nombre,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: ejercicio.grupoMuscular.trim().isEmpty
+                                ? null
+                                : Text(
+                                    ejercicio.grupoMuscular,
+                                  ),
+                            trailing: agregado
+                                ? const Icon(
+                                    Icons.check_circle,
+                                  )
+                                : const Icon(
+                                    Icons.add_circle_outline,
+                                  ),
+                            enabled: !agregado,
+                            onTap: agregado
+                                ? null
+                                : () {
+                                    agregarEjercicio(
+                                      ejercicio,
+                                    );
+
+                                    Navigator.pop(bottomSheetContext);
+                                  },
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
               ],
             ),
           ),

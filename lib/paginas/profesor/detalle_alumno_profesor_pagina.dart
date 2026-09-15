@@ -8,6 +8,7 @@ import '../../repositorios/asignacion_rutina_repositorio.dart';
 import '../../repositorios/rutina_profesor_repositorio.dart';
 import '../../servicios/base_datos_servicio.dart';
 import '../../servicios/vinculacion_firestore_servicio.dart';
+import '../../widgets/avatar_usuario.dart';
 import 'progreso_alumno_profesor_pagina.dart';
 
 class DetalleAlumnoProfesorPagina
@@ -47,6 +48,7 @@ class _DetalleAlumnoProfesorPaginaState
   String nombre = '';
   String correo = '';
   String objetivo = '';
+  String fotoUrl = '';
 
   int? edad;
   double? altura;
@@ -163,6 +165,11 @@ class _DetalleAlumnoProfesorPaginaState
 
         objetivo =
             (datos['objetivo'] ?? '')
+                .toString()
+                .trim();
+
+        fotoUrl =
+            (datos['fotoUrl'] ?? widget.alumno.fotoUrl)
                 .toString()
                 .trim();
 
@@ -1054,15 +1061,12 @@ class _DetalleAlumnoProfesorPaginaState
                           child:
                               Column(
                             children: [
-                              const CircleAvatar(
-                                radius:
-                                    40,
-                                child:
-                                    Icon(
-                                  Icons.person_outline,
-                                  size:
-                                      42,
-                                ),
+                              AvatarUsuario(
+                                fotoUrl: fotoUrl.isNotEmpty
+                                    ? fotoUrl
+                                    : widget.alumno.fotoUrl,
+                                nombre: nombreMostrar,
+                                radio: 40,
                               ),
 
                               const SizedBox(

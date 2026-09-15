@@ -98,6 +98,11 @@ class AlumnoRepositorio {
                     .toString()
                     .trim();
 
+            final fotoUrl =
+                (datosAlumno['fotoUrl'] ?? '')
+                    .toString()
+                    .trim();
+
             resultado.add(
               AlumnoProfesor(
                 id: alumnoId,
@@ -106,6 +111,7 @@ class AlumnoRepositorio {
                         ? 'Alumno'
                         : nombre,
                 correo: correo,
+                fotoUrl: fotoUrl,
               ),
             );
           } on FirebaseException {
@@ -193,6 +199,11 @@ class AlumnoRepositorio {
               .toString()
               .trim();
 
+      final fotoUrl =
+          (datosAlumno['fotoUrl'] ?? '')
+              .toString()
+              .trim();
+
       resultado.add(
         AlumnoProfesor(
           id: alumnoId,
@@ -201,6 +212,7 @@ class AlumnoRepositorio {
                   ? 'Alumno'
                   : nombre,
           correo: correo,
+          fotoUrl: fotoUrl,
         ),
       );
     }

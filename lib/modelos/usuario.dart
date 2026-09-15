@@ -7,6 +7,7 @@ class Usuario {
   String objetivo;
   String correo;
   String rol;
+  String fotoUrl;
 
   Usuario({
     required this.id,
@@ -17,5 +18,6 @@ class Usuario {
     required this.objetivo,
     required this.correo,
     required this.rol,
+    this.fotoUrl = '',
   });
 }

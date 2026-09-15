@@ -13,31 +13,34 @@ GitHub representa el estado oficial del proyecto:
 
 ## TERMINADO
 
-### 1. Autenticación y Perfiles
+### 1. Autenticación, Perfiles y Foto de Perfil
 - Roles diferenciados: **Profesor** y **Alumno**.
+- **Foto de Perfil:**
+  - Soporte para subir y cambiar foto de perfil desde "Editar perfil" (Data URI / Base64 instantáneo o remoto).
+  - Persistencia en Firestore (`fotoUrl`) y sesión activa.
+  - Renderizado universal con `AvatarUsuario` (Base64, URL, iniciales o ícono) en todo el sistema.
 - Sistema de vinculación por código entre Alumno y Profesor.
-- Gestión de perfil de usuario y cambio de rol.
+- **Confirmación visual con Foto y Nombre al vincular:** Al ingresar el código del alumno, el profesor ve la foto de perfil, nombre y correo del alumno para confirmar antes de enviar la solicitud.
 
-### 2. Gestión de Rutinas y Ejercicios (Profesor)
-- Creación, edición y eliminación de ejercicios en catálogo.
-- Configuración avanzada por ejercicio: series y repeticiones personalizadas por serie (ej: Serie 1 = 12 reps, Serie 2 = 10 reps).
-- Asignación de rutinas por día para cada alumno vinculado.
-- Seguimiento en vivo del progreso de los alumnos y rutinas finalizadas.
+### 2. Panel y Gestión de Alumnos (Profesor)
+- Panel simplificado y unificado: **Ejercicios**, **Rutinas** y **Alumnos**.
+- **Vincular Alumno integrado directamente dentro de Alumnos:** Botón flotante y acción superior en la lista de alumnos para vincular nuevos alumnos sin cambiar de pestaña.
 
-### 3. Rutinas y Entrenamiento en Vivo (Alumno)
+### 3. Creación de Ejercicios desde Rutinas
+- **Creación Inline:** El profesor puede crear nuevos ejercicios directamente desde el editor de rutinas (`EditarRutinaPagina`) sin salir del flujo de trabajo, añadiéndose de inmediato a la rutina.
+
+### 4. Rutinas y Entrenamiento en Vivo (Alumno)
 - Vista de rutinas asignadas por día de la semana.
 - Modo entrenamiento activo: cronómetro, marcado de series completadas, registro de pesos utilizados (kg).
 - Finalización de entrenamiento con sincronización automática a Firestore y guardado de historial local y remoto.
 
-### 4. Demostraciones Multimedia (GIF / Videos / Enlaces)
-- Soporte para subida local y procesamiento automático.
-- Codificación instantánea como Data URI (< 800 KB) para GIFs cortos e imágenes (0ms, 100% inmune a CORS y fallos de red).
-- **Subida resiliente multi-proveedor** para archivos pesados (> 800 KB / videos MP4 / MOV) con fallback escalonado: Catbox.moe -> Litterbox -> FreeImage.host -> TmpFiles.
-- **Parsing protegido:** Detección de formato y captura de excepciones para evitar errores de tipo XML/HTML (`FormatException`) ante respuestas no-JSON o bloqueos de servidores externos.
-- Visualizador ampliado con modal interactivo, botón Maximizar a pantalla completa y soporte de Zoom táctil / PC (`InteractiveViewer`).
-- Soporte para enlaces externos y videos de YouTube.
+### 5. Demostraciones Multimedia (GIF / Videos / Enlaces)
+- Soporte para subida local y procesamiento automático (Data URI < 800 KB instantáneo).
+- Fallback escalonado multi-proveedor (Catbox -> Litterbox -> FreeImage -> TmpFiles).
+- Parsing protegido para evitar errores por respuestas XML/HTML externas.
+- Visualizador ampliado con zoom táctil / PC y soporte de pantalla completa.
 
-### 5. Multiplataforma y Despliegue
+### 6. Multiplataforma y Despliegue
 - Flutter Web configurado y desplegado en Firebase Hosting (`mi-entrenamiento-9f4a8.web.app`).
 - Configuración para compilación Android APK.
 
@@ -45,20 +48,21 @@ GitHub representa el estado oficial del proyecto:
 
 ## EN DESARROLLO
 
-- Nuevas funcionalidades o requerimientos solicitados por el usuario.
+- Nuevas pruebas y requerimientos adicionales solicitados por el usuario.
 
 ---
 
 ## ERRORES CONOCIDOS
 
-- Ninguno crítico pendiente en el módulo de demostraciones multimedia tras la implementación del blindaje multi-proveedor y parsing protegido.
+- Ninguno crítico pendiente en los módulos de perfiles, vinculación y creación de rutinas/ejercicios.
 
 ---
 
 ## PRÓXIMOS PASOS
 
-1. Implementar la siguiente petición funcional que indique el usuario.
-2. Validar pruebas funcionales de extremo a extremo (Profesor creando rutina -> Alumno entrenando).
+1. Probar en la Web o Android la edición de foto de perfil y la nueva confirmación con avatar al vincular alumno por código.
+2. Probar la creación de un nuevo ejercicio directamente desde el editor de una rutina.
+3. Evaluar qué funcionalidades adicionales de analítica o seguimiento requiere la app para su lanzamiento final.
 
 ---
 
@@ -66,22 +70,36 @@ GitHub representa el estado oficial del proyecto:
 
 **Agente:** Antigravity  
 **Fecha:** 2026-09-15  
-**Último commit:** `c3ecfa6`
+**Último commit:** `e9153de`
 
 ### Trabajo realizado
-- Blindaje completo de `AlmacenamientoServicio` para resolver el error de XML/HTML cuando se esperaba JSON.
-- Implementación de fallback escalonado de subida de medios: Data URI (< 800 KB) -> Catbox -> Litterbox -> FreeImage -> TmpFiles.
-- Integración de los dominios en `DialogoDemostracion`.
-- Actualización de la bitácora en `PROJECT_STATUS.md`.
+- Implementación de foto de perfil de usuario (`fotoUrl` en `Usuario`, `AlumnoProfesor`, `UsuarioFirestoreServicio` y widget `AvatarUsuario`).
+- Integración de subida de foto en `EditarPerfilPagina` y visualización en `PerfilPagina`.
+- Búsqueda previa y diálogo de confirmación con foto y nombre del alumno en `AgregarAlumnoPagina`.
+- Unificación de "Vincular alumno" dentro de la pantalla `AlumnosProfesorPagina` con botón flotante y accesos directos.
+- Posibilidad de crear nuevos ejercicios directamente desde el selector de la rutina en `EditarRutinaPagina`.
+- Actualización de bitácora en `PROJECT_STATUS.md`.
 
 ### Archivos modificados
-- `lib/servicios/almacenamiento_servicio.dart`
-- `lib/widgets/dialogo_demostracion.dart`
+- `lib/widgets/avatar_usuario.dart` (Nuevo)
+- `lib/modelos/usuario.dart`
+- `lib/modelos/alumno_profesor.dart`
+- `lib/servicios/usuario_firestore_servicio.dart`
+- `lib/servicios/vinculacion_firestore_servicio.dart`
+- `lib/servicios/inicializacion_app_servicio.dart`
+- `lib/repositorios/alumno_repositorio.dart`
+- `lib/paginas/editar_perfil_pagina.dart`
+- `lib/paginas/perfil_pagina.dart`
+- `lib/paginas/profesor/panel_profesor_pagina.dart`
+- `lib/paginas/profesor/alumnos_profesor_pagina.dart`
+- `lib/paginas/profesor/detalle_alumno_profesor_pagina.dart`
+- `lib/paginas/profesor/agregar_alumno_pagina.dart`
+- `lib/paginas/profesor/editar_rutina_pagina.dart`
 - `PROJECT_STATUS.md`
 
 ### Pruebas realizadas
-- Verificación sintáctica y de flujo de fallback.
-- Commit y Push a GitHub rama `main`.
+- Revisión de tipos Dart y validación de null-safety en todos los modelos y servicios modificados.
+- Verificación del árbol de trabajo de Git.
 
 ### Pendiente
-- Continuar con la siguiente petición del usuario.
+- Feedback y próximas solicitudes del usuario.

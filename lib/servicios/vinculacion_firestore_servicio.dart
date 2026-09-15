@@ -556,6 +556,74 @@ class VinculacionFirestoreServicio {
     );
   }
 
+  static Future<Map<String, dynamic>> buscarAlumnoPorCodigo(
+    String codigoIngresado,
+  ) async {
+    final usuario = await _obtenerUsuarioActual();
+
+    final datosProfesor = await _obtenerDatosUsuario(
+      usuario.uid,
+    );
+
+    if (datosProfesor['rol'] != 'profesor') {
+      throw Exception('Solo un profesor puede buscar y vincular alumnos.');
+    }
+
+    final codigo = codigoIngresado.trim().toUpperCase();
+
+    if (codigo.length != 8) {
+      throw Exception('Ingresá un código válido de 8 caracteres.');
+    }
+
+    final codigoDoc = await _firestore
+        .collection('codigosVinculacion')
+        .doc(codigo)
+        .get();
+
+    final datosCodigo = codigoDoc.data();
+
+    if (datosCodigo == null || datosCodigo['activo'] != true) {
+      throw Exception('El código ingresado no existe o ya no está activo.');
+    }
+
+    final alumnoId = (datosCodigo['alumnoId'] ?? '').toString();
+
+    if (alumnoId.isEmpty) {
+      throw Exception('El código no tiene un alumno válido.');
+    }
+
+    if (alumnoId == usuario.uid) {
+      throw Exception('No podés vincularte con tu propia cuenta.');
+    }
+
+    final vinculoActivo = await _firestore
+        .collection('vinculosActivos')
+        .doc(alumnoId)
+        .get();
+
+    if (vinculoActivo.exists) {
+      final datos = vinculoActivo.data();
+      final profesorActualId = (datos?['profesorId'] ?? '').toString();
+
+      if (profesorActualId == usuario.uid) {
+        throw Exception('Este alumno ya está vinculado contigo.');
+      }
+
+      throw Exception('Este alumno ya tiene un profesor vinculado.');
+    }
+
+    final docAlumno = await _firestore.collection('usuarios').doc(alumnoId).get();
+    final datosAlumno = docAlumno.data() ?? {};
+
+    return {
+      'alumnoId': alumnoId,
+      'nombre': (datosAlumno['nombre'] ?? 'Alumno').toString().trim(),
+      'correo': (datosAlumno['correo'] ?? '').toString().trim(),
+      'fotoUrl': (datosAlumno['fotoUrl'] ?? '').toString().trim(),
+      'codigo': codigo,
+    };
+  }
+
   static Future<void>
       enviarSolicitudPorCodigo(
     String codigoIngresado,

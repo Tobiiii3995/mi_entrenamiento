@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../servicios/datos_app.dart';
 import '../servicios/sesion_local_servicio.dart';
 import '../servicios/vinculacion_firestore_servicio.dart';
+import '../widgets/avatar_usuario.dart';
 import '../widgets/perfil_dato.dart';
 import 'cuenta_seguridad_pagina.dart';
 import 'editar_perfil_pagina.dart';
@@ -1240,12 +1241,10 @@ class _PerfilPaginaState
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    child: Icon(
-                      Icons.person,
-                      size: 55,
-                    ),
+                  AvatarUsuario(
+                    fotoUrl: usuario.fotoUrl,
+                    nombre: usuario.nombre,
+                    radio: 50,
                   ),
 
                   const SizedBox(

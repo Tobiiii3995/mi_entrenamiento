@@ -48,6 +48,7 @@ class InicializacionAppServicio {
     double pesoFs = 0.0;
     String objetivoFs = '';
     String nombreFs = nombre;
+    String fotoUrlFs = '';
 
     if (datosFirestore != null) {
       if (datosFirestore['edad'] is num) {
@@ -61,6 +62,9 @@ class InicializacionAppServicio {
       }
       if (datosFirestore['objetivo'] != null) {
         objetivoFs = datosFirestore['objetivo'].toString();
+      }
+      if (datosFirestore['fotoUrl'] != null) {
+        fotoUrlFs = datosFirestore['fotoUrl'].toString().trim();
       }
       if (datosFirestore['nombre'] != null &&
           datosFirestore['nombre'].toString().trim().isNotEmpty) {
@@ -96,6 +100,7 @@ class InicializacionAppServicio {
             ? correo
             : usuarioGuardado.correo ?? '',
         rol: rol,
+        fotoUrl: fotoUrlFs,
       );
     } else {
       DatosApp.usuarioActual = Usuario(
@@ -107,6 +112,7 @@ class InicializacionAppServicio {
         objetivo: objetivoFs,
         correo: correo,
         rol: rol,
+        fotoUrl: fotoUrlFs,
       );
     }
 

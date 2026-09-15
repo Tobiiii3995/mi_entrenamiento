@@ -570,6 +570,7 @@ class UsuarioFirestoreServicio {
     required double altura,
     required double peso,
     required String objetivo,
+    String? fotoUrl,
   }) async {
     final usuarioAuth =
         await _obtenerUsuarioVerificado();
@@ -634,31 +635,37 @@ class UsuarioFirestoreServicio {
     final batch =
         _firestore.batch();
 
+    final mapaActualizacion = <String, dynamic>{
+      'nombre':
+          nombreLimpio,
+      'correo':
+          usuarioAuth.email ??
+              '',
+      'fechaNacimiento':
+          Timestamp.fromDate(
+        fechaNacimiento,
+      ),
+      'edad':
+          edad,
+      'altura':
+          altura,
+      'peso':
+          peso,
+      'objetivo':
+          objetivo,
+      'perfilCompleto':
+          true,
+      'actualizadoEn':
+          FieldValue.serverTimestamp(),
+    };
+
+    if (fotoUrl != null) {
+      mapaActualizacion['fotoUrl'] = fotoUrl;
+    }
+
     batch.update(
       referenciaUsuario,
-      {
-        'nombre':
-            nombreLimpio,
-        'correo':
-            usuarioAuth.email ??
-                '',
-        'fechaNacimiento':
-            Timestamp.fromDate(
-          fechaNacimiento,
-        ),
-        'edad':
-            edad,
-        'altura':
-            altura,
-        'peso':
-            peso,
-        'objetivo':
-            objetivo,
-        'perfilCompleto':
-            true,
-        'actualizadoEn':
-            FieldValue.serverTimestamp(),
-      },
+      mapaActualizacion,
     );
 
     if (cambioPeso) {
@@ -830,4 +837,15 @@ class UsuarioFirestoreServicio {
 
     return resultado;
   }
+
+  static Future<void> actualizarFotoPerfil(String fotoUrl) async {
+    final usuarioAuth = await _obtenerUsuarioVerificado();
+    final referenciaUsuario = _firestore.collection('usuarios').doc(usuarioAuth.uid);
+
+    await referenciaUsuario.update({
+      'fotoUrl': fotoUrl.trim(),
+      'actualizadoEn': FieldValue.serverTimestamp(),
+    });
+  }
 }
+
