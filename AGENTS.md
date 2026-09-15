@@ -1,71 +1,117 @@
-# 🤖 Protocolo y Reglas para Agentes de IA (AGENTS.md)
+# AGENTS.md — Protocolo e Instrucciones para Agentes IA
 
-Este documento establece las reglas obligatorias para cualquier Agente de Inteligencia Artificial (Antigravity, Codex, etc.) o desarrollador que trabaje sobre este repositorio.
+Este proyecto es desarrollado conjuntamente utilizando distintos agentes de IA, principalmente **Google Antigravity** y **OpenAI Codex**.
 
----
-
-## 📌 Principios Fundamentales
-1. **GitHub es la única fuente de la verdad:** La rama principal es `main`.
-2. **Sincronización Obligatoria:**
-   - **Antes de comenzar:** Ejecutar siempre `git status` y `git pull origin main`.
-   - **Al finalizar cada tarea o bloque estable:** Ejecutar `git add .`, `git commit -m "..."` con mensaje descriptivo y `git push origin main`.
-3. **No romper código existente:** No eliminar funcionalidades implementadas ni refactorizar sin una necesidad explícita del usuario.
-4. **Paridad de Plataformas:** La aplicación funciona tanto en **Flutter Web** (desplegado en Firebase Hosting) como en **Android Nativo** (instalado vía APK). Cualquier cambio debe mantener compatibilidad en ambas plataformas.
-5. **Actualizar Bitácora:** Actualizar siempre el archivo `PROJECT_STATUS.md` al finalizar cambios importantes.
+GitHub es la **FUENTE OFICIAL** del estado del proyecto (rama `main`).
 
 ---
 
-## 🛠️ Comandos Esenciales para el Flujo de Trabajo
+## 📌 REGLA PRINCIPAL
 
-### 1. Iniciar Sesión / Relevo
+Antes de realizar cualquier modificación:
+
+1. Ejecutar `git pull origin main`.
+2. Revisar el estado actual del repositorio (`git status`).
+3. Revisar los últimos commits (`git log`).
+4. Leer `PROJECT_STATUS.md`.
+5. Analizar el código existente antes de modificarlo.
+
+**NO asumir que el último trabajo fue realizado por este mismo agente.** Otro agente puede haber trabajado anteriormente.
+
+---
+
+## ⚙️ REGLAS DE DESARROLLO
+
+- **NO eliminar funcionalidades existentes** sin autorización.
+- **NO rehacer código que ya funciona** sin una razón técnica clara.
+- **NO cambiar la arquitectura del proyecto** innecesariamente.
+- **NO sobrescribir cambios** realizados por otro agente.
+- **Mantener compatibilidad** con el código existente y paridad de plataformas (**Flutter Web** y **Android Nativo**).
+- **Investigar el origen de un error** antes de aplicar soluciones.
+- **Realizar cambios pequeños y verificables** cuando sea posible.
+- Después de cambios importantes, ejecutar las pruebas/build correspondientes (`flutter analyze`, `flutter build web`, etc.).
+- Corregir errores introducidos antes de finalizar la sesión.
+
+---
+
+## 🐙 GIT Y FLUJO DE TRABAJO
+
+### Antes de trabajar:
 ```bash
-git status
 git pull origin main
-flutter pub get
 ```
 
-### 2. Verificación y Calidad
-```bash
-flutter analyze
-```
+### Al finalizar cada etapa o bloque estable:
+1. Revisar cambios (`git status`, `git diff`).
+2. Probar el proyecto (`flutter analyze` / `flutter build`).
+3. Actualizar `PROJECT_STATUS.md` completando la sección de **ÚLTIMO HANDOFF**.
+4. Crear un commit descriptivo:
+   ```bash
+   git add .
+   git commit -m "tipo: descripción clara del cambio"
+   git push origin main
+   ```
 
-### 3. Compilación y Despliegue Web
-```bash
-flutter build web
-npx firebase-tools deploy --only hosting
-```
-> URL Web oficial: `https://mi-entrenamiento-9f4a8.web.app`
-
-### 4. Compilación e Instalación Móvil (Android por USB)
-Para verificar dispositivos conectados vía ADB:
-```bash
-flutter devices
-```
-Para compilar release APK:
-```bash
-flutter build apk --release
-```
-Para instalar directamente en el dispositivo conectado vía USB:
-```bash
-flutter install -d <DEVICE_ID>
-# o mediante ADB:
-adb install -r build/app/outputs/flutter-apk/app-release.apk
-```
+Los commits deben explicar claramente qué se modificó (ej: `feat: ...`, `fix: ...`, `docs: ...`, `refactor: ...`).
 
 ---
 
-## 🏗️ Arquitectura y Tecnologías
+## 🔄 TRABAJO ENTRE ANTIGRAVITY Y CODEX
+
+Flujo esperado:
+
+```
+Antigravity
+    ↓ trabaja
+commit + push
+    ↓
+Codex
+    ↓ git pull + analiza
+continúa el trabajo
+    ↓
+commit + push
+    ↓
+Antigravity
+    ↓ git pull + analiza
+continúa el trabajo
+```
+
+Cada agente debe asumir que el agente anterior pudo modificar cualquier parte del proyecto. Por lo tanto, **SIEMPRE revisar Git y `PROJECT_STATUS.md` antes de continuar**.
+
+---
+
+## 🚫 PROHIBICIONES
+
+- **NO** trabajar simultáneamente sobre la misma rama desde dos agentes.
+- **NO** hacer `git push --force` salvo autorización explícita.
+- **NO** borrar archivos o funcionalidades simplemente porque parezcan innecesarios.
+- **NO** resetear el repositorio para solucionar conflictos sin revisar primero los cambios existentes.
+- **NO** reemplazar implementaciones completas cuando el problema puede solucionarse con un cambio localizado.
+
+---
+
+## 🏗️ ARQUITECTURA Y TECNOLOGÍAS DEL PROYECTO
+
 - **Framework:** Flutter (Dart 3.x)
 - **Base de Datos Cloud:** Cloud Firestore (colecciones: `usuarios`, `rutinasProfesor`, `rutinasAsignadas`, `ejercicios`, `entrenamientosFinalizados`, `entrenamientosEnCurso`, `registrosPeso`)
 - **Base de Datos Local / Caché:** Drift (SQLite)
-- **Autenticación:** Firestore (`colección usuarios` con roles `profesor` y `alumno`)
-- **Alojamiento Multimedia:** Catbox.moe / FreeImage.host API (sin requerir tarjeta de crédito, soporte hasta 200MB)
-- **Web Hosting:** Firebase Hosting (`mi-entrenamiento-9f4a8`)
+- **Autenticación:** Firestore (`colección usuarios` con roles `profesor` y `alumno` + códigos de vinculación)
+- **Alojamiento Multimedia:** Data URIs en base64 (< 800 KB) con fallback gratuito para medios grandes (ImgBB / FreeImage.host)
+- **Web Hosting:** Firebase Hosting (`https://mi-entrenamiento-9f4a8.web.app`)
 
 ---
 
-## 📋 Checklist antes de cerrar turno
-- [ ] ¿El código pasa `flutter analyze` sin errores críticos?
-- [ ] ¿Se probó la compatibilidad Web y Android?
-- [ ] ¿Se actualizó `PROJECT_STATUS.md`?
-- [ ] ¿Se hizo `git commit` y `git push origin main`?
+## 🤝 HANDOFF ENTRE AGENTES
+
+Antes de finalizar una sesión, **actualizar obligatoriamente `PROJECT_STATUS.md`** indicando:
+- Qué se terminó.
+- Qué quedó funcionando.
+- Qué está en desarrollo.
+- Errores conocidos.
+- Próximos pasos.
+- Archivos importantes modificados.
+- Pruebas realizadas.
+- Último agente que trabajó.
+- Commit correspondiente.
+
+El siguiente agente debe leer ese archivo antes de iniciar su trabajo.
