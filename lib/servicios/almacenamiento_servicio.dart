@@ -29,7 +29,7 @@ class AlmacenamientoServicio {
       throw Exception('No se pudieron leer los datos del archivo seleccionado.');
     }
 
-    // Para archivos de demostración optimizados (< 800 KB, como GIFs cortos o fotos):
+    // Para archivos de demostración (< 800 KB, como GIFs cortos o fotos):
     // Se codifican como Data URI en ultra alta velocidad (0ms, 100% inmune a errores de CORS o red).
     if (bytes.lengthInBytes <= 800 * 1024) {
       final mimeType = _obtenerMimeType(nombreArchivo);
@@ -54,41 +54,109 @@ class AlmacenamientoServicio {
         return 'image/webp';
       case 'mp4':
         return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
       default:
         return 'application/octet-stream';
     }
   }
 
-  static Future<String> _subirArchivoGrande(Uint8List bytes, String nombreArchivo) async {
-    // Intento 1: ImgBB API (Soporta CORS Web y hasta 32MB)
+  static Future<String> _subirArchivoGrande(
+    Uint8List bytes,
+    String nombreArchivo,
+  ) async {
+    // Intento 1: Catbox.moe (Soporta GIF, MP4, WebP, PNG, JPG hasta 200MB, respuesta texto plano)
+    final urlCatbox = await _subirACatbox(bytes, nombreArchivo);
+    if (urlCatbox != null && urlCatbox.isNotEmpty) {
+      return urlCatbox;
+    }
+
+    // Intento 2: Litterbox (Servicio temporal de Catbox con alta disponibilidad)
+    final urlLitterbox = await _subirALitterbox(bytes, nombreArchivo);
+    if (urlLitterbox != null && urlLitterbox.isNotEmpty) {
+      return urlLitterbox;
+    }
+
+    // Intento 3: FreeImage.host (Soporta imágenes y GIFs)
+    final urlFreeImage = await _subirAFreeImage(bytes, nombreArchivo);
+    if (urlFreeImage != null && urlFreeImage.isNotEmpty) {
+      return urlFreeImage;
+    }
+
+    // Intento 4: TmpFiles API (Soporta cualquier archivo temporalmente)
+    final urlTmpFiles = await _subirATmpFiles(bytes, nombreArchivo);
+    if (urlTmpFiles != null && urlTmpFiles.isNotEmpty) {
+      return urlTmpFiles;
+    }
+
+    throw Exception(
+      'No se pudo subir el archivo pesado a los servidores externos. '
+      'Recomendación: usa un GIF o imagen de menos de 800 KB para guardado instantáneo, '
+      'o ingresa un enlace directo (ej: YouTube o enlace web).',
+    );
+  }
+
+  static Future<String?> _subirACatbox(
+    Uint8List bytes,
+    String nombreArchivo,
+  ) async {
     try {
-      final uri = Uri.parse('https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5');
+      final uri = Uri.parse('https://catbox.moe/user/api.php');
       final request = http.MultipartRequest('POST', uri)
+        ..fields['reqtype'] = 'fileupload'
         ..files.add(
           http.MultipartFile.fromBytes(
-            'image',
+            'fileToUpload',
             bytes,
             filename: nombreArchivo,
           ),
         );
 
       final response = await request.send().timeout(
-        const Duration(seconds: 35),
+        const Duration(seconds: 25),
       );
 
-      final responseBody = await response.stream.bytesToString();
-      final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
-
-      if (response.statusCode == 200 && jsonResponse['success'] == true) {
-        final data = jsonResponse['data'] as Map<String, dynamic>;
-        final url = data['url'] as String? ?? data['display_url'] as String?;
-        if (url != null && url.isNotEmpty) {
-          return url;
-        }
+      final responseBody = (await response.stream.bytesToString()).trim();
+      if (response.statusCode == 200 && responseBody.startsWith('https://files.catbox.moe/')) {
+        return responseBody;
       }
     } catch (_) {}
+    return null;
+  }
 
-    // Intento 2: FreeImage.host
+  static Future<String?> _subirALitterbox(
+    Uint8List bytes,
+    String nombreArchivo,
+  ) async {
+    try {
+      final uri = Uri.parse('https://litterbox.catbox.moe/resources/internals/api.php');
+      final request = http.MultipartRequest('POST', uri)
+        ..fields['reqtype'] = 'fileupload'
+        ..fields['time'] = '72h'
+        ..files.add(
+          http.MultipartFile.fromBytes(
+            'fileToUpload',
+            bytes,
+            filename: nombreArchivo,
+          ),
+        );
+
+      final response = await request.send().timeout(
+        const Duration(seconds: 25),
+      );
+
+      final responseBody = (await response.stream.bytesToString()).trim();
+      if (response.statusCode == 200 && responseBody.startsWith('https://litter.catbox.moe/')) {
+        return responseBody;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<String?> _subirAFreeImage(
+    Uint8List bytes,
+    String nombreArchivo,
+  ) async {
     try {
       final uri = Uri.parse('https://freeimage.host/api/1/upload');
       final base64Image = base64Encode(bytes);
@@ -101,20 +169,58 @@ class AlmacenamientoServicio {
           'format': 'json',
         },
       ).timeout(
-        const Duration(seconds: 35),
+        const Duration(seconds: 25),
       );
 
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
-        if (jsonResponse['status_code'] == 200) {
-          final link = jsonResponse['image']?['url'] as String?;
-          if (link != null && link.isNotEmpty) {
-            return link;
+        final body = response.body.trim();
+        if (body.startsWith('{') || body.startsWith('[')) {
+          final jsonResponse = jsonDecode(body) as Map<String, dynamic>;
+          if (jsonResponse['status_code'] == 200) {
+            final link = jsonResponse['image']?['url'] as String?;
+            if (link != null && link.isNotEmpty) {
+              return link;
+            }
           }
         }
       }
     } catch (_) {}
+    return null;
+  }
 
-    throw Exception('No se pudo subir el archivo. Verificá que el archivo sea una imagen o GIF válido.');
+  static Future<String?> _subirATmpFiles(
+    Uint8List bytes,
+    String nombreArchivo,
+  ) async {
+    try {
+      final uri = Uri.parse('https://tmpfiles.org/api/v1/upload');
+      final request = http.MultipartRequest('POST', uri)
+        ..files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            bytes,
+            filename: nombreArchivo,
+          ),
+        );
+
+      final response = await request.send().timeout(
+        const Duration(seconds: 25),
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = (await response.stream.bytesToString()).trim();
+        if (responseBody.startsWith('{')) {
+          final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
+          if (jsonResponse['status'] == 'success') {
+            final url = jsonResponse['data']?['url'] as String?;
+            if (url != null && url.isNotEmpty) {
+              // Convertir tmpfiles.org/123/name a tmpfiles.org/dl/123/name para acceso directo al archivo
+              return url.replaceFirst('tmpfiles.org/', 'tmpfiles.org/dl/');
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 }

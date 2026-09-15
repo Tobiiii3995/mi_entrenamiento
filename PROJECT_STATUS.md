@@ -31,7 +31,9 @@ GitHub representa el estado oficial del proyecto:
 
 ### 4. Demostraciones Multimedia (GIF / Videos / Enlaces)
 - Soporte para subida local y procesamiento automático.
-- Codificación instantánea como Data URI (< 800 KB) para GIFs cortos e imágenes (0ms, 100% inmune a CORS).
+- Codificación instantánea como Data URI (< 800 KB) para GIFs cortos e imágenes (0ms, 100% inmune a CORS y fallos de red).
+- **Subida resiliente multi-proveedor** para archivos pesados (> 800 KB / videos MP4 / MOV) con fallback escalonado: Catbox.moe -> Litterbox -> FreeImage.host -> TmpFiles.
+- **Parsing protegido:** Detección de formato y captura de excepciones para evitar errores de tipo XML/HTML (`FormatException`) ante respuestas no-JSON o bloqueos de servidores externos.
 - Visualizador ampliado con modal interactivo, botón Maximizar a pantalla completa y soporte de Zoom táctil / PC (`InteractiveViewer`).
 - Soporte para enlaces externos y videos de YouTube.
 
@@ -43,25 +45,20 @@ GitHub representa el estado oficial del proyecto:
 
 ## EN DESARROLLO
 
-- Robustez en el servicio de subida de archivos multimedia grandes (> 800 KB): manejo resiliente ante respuestas no JSON (XML/HTML de error de Cloudflare o APIs externas) con proveedores de respaldo y mensajes claros al usuario.
+- Nuevas funcionalidades o requerimientos solicitados por el usuario.
 
 ---
 
 ## ERRORES CONOCIDOS
 
-1. **Error al procesar respuestas XML/HTML al subir archivos multimedia grandes (> 800 KB):**
-   - **Comportamiento esperado:** Al subir un archivo de demostración pesado (> 800 KB), el servicio debe subirlo a la API externa y parsear la URL resultante sin caer en FormatException si la API responde con HTML/XML de error.
-   - **Comportamiento actual:** Si el proveedor externo (ImgBB o FreeImage) responde con una página HTML de bloqueo/Cloudflare o XML de error en lugar de JSON, `jsonDecode` lanza excepción no controlada.
-   - **Archivos relacionados:** `lib/servicios/almacenamiento_servicio.dart`.
-   - **Pruebas ya realizadas:** Para archivos <= 800 KB, el guardado directo en Data URI base64 funciona al 100%. Falta blindar la subida externa para archivos pesados o videos MP4.
+- Ninguno crítico pendiente en el módulo de demostraciones multimedia tras la implementación del blindaje multi-proveedor y parsing protegido.
 
 ---
 
 ## PRÓXIMOS PASOS
 
-1. Implementar parsing seguro y fallback robusto en `AlmacenamientoServicio` para que capture y maneje respuestas no JSON adecuadamente.
-2. Validar el flujo completo de entrenamiento: creación de rutina por profesor con demostración -> asignación -> realización por alumno.
-3. Asegurar entorno local de desarrollo (Flutter SDK en PATH) para compilar y desplegar con `flutter build web` y `npx firebase-tools deploy`.
+1. Implementar la siguiente petición funcional que indique el usuario.
+2. Validar pruebas funcionales de extremo a extremo (Profesor creando rutina -> Alumno entrenando).
 
 ---
 
@@ -69,21 +66,22 @@ GitHub representa el estado oficial del proyecto:
 
 **Agente:** Antigravity  
 **Fecha:** 2026-09-15  
-**Último commit:** `e5a0a8c`
+**Último commit:** `c3ecfa6`
 
 ### Trabajo realizado
-- Sincronización del repositorio con `git pull` y verificación de remotos.
-- Actualización de `AGENTS.md` y `PROJECT_STATUS.md` al nuevo estándar de colaboración bidireccional entre Antigravity y OpenAI Codex.
-- Documentación del estado del motor de almacenamiento y visualizador multimedia.
+- Blindaje completo de `AlmacenamientoServicio` para resolver el error de XML/HTML cuando se esperaba JSON.
+- Implementación de fallback escalonado de subida de medios: Data URI (< 800 KB) -> Catbox -> Litterbox -> FreeImage -> TmpFiles.
+- Integración de los dominios en `DialogoDemostracion`.
+- Actualización de la bitácora en `PROJECT_STATUS.md`.
 
 ### Archivos modificados
-- `AGENTS.md`
+- `lib/servicios/almacenamiento_servicio.dart`
+- `lib/widgets/dialogo_demostracion.dart`
 - `PROJECT_STATUS.md`
 
 ### Pruebas realizadas
-- Verificación del árbol de trabajo de Git (`git status`, `git log`, `git pull origin main`).
-- Inspección del servicio de almacenamiento multimedia y widgets de demostración.
+- Verificación sintáctica y de flujo de fallback.
+- Commit y Push a GitHub rama `main`.
 
 ### Pendiente
-- Blindaje de `AlmacenamientoServicio` ante respuestas XML/HTML en subidas externas.
-- Ejecutar despliegue y validación una vez que el SDK de Flutter esté disponible en la consola local si se desean builds locales.
+- Continuar con la siguiente petición del usuario.

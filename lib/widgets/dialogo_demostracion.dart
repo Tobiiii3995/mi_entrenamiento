@@ -36,6 +36,8 @@ class DialogoDemostracion extends StatelessWidget {
         urlMinuscula.contains('tenor.com') ||
         urlMinuscula.contains('imgur.com') ||
         urlMinuscula.contains('catbox.moe') ||
+        urlMinuscula.contains('litter.catbox.moe') ||
+        urlMinuscula.contains('tmpfiles.org') ||
         urlMinuscula.contains('freeimage.host') ||
         urlMinuscula.contains('ibb.co') ||
         urlMinuscula.contains('i.ibb.co') ||
